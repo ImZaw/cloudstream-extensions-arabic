@@ -1,4 +1,4 @@
-package com.stable
+package com.extractors
 
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.app

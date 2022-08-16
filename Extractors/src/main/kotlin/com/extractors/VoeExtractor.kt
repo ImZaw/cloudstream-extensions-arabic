@@ -1,4 +1,4 @@
-package com.stable
+package com.extractors
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.app
