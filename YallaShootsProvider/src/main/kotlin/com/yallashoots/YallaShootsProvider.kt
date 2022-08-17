@@ -70,7 +70,7 @@ class YallaShoots : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val doc = app.get("$data?serv=2").document
-        val sourceLink = doc.select("script:contains(.m3u8)").html().replace(".*hls: \"|\"\\};.*".toRegex(),"")
+        val sourceLink = doc.select("script:contains(.m3u8)").html().replace(".*hls: \"|\"};.*".toRegex(),"")
         callback.invoke(
             ExtractorLink(
                 this.name,
