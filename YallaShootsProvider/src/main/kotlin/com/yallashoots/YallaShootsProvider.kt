@@ -4,7 +4,6 @@ package com.yallashoots
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
-import org.jsoup.nodes.Element
 
 class YallaShoots : MainAPI() {
     override var mainUrl = "https://www.yalla-shoots.com"
@@ -18,7 +17,7 @@ class YallaShoots : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val dataMap = mapOf(
-            "Matches Today" to "$mainUrl",
+            "Matches Today" to mainUrl,
         )
         return HomePageResponse(dataMap.apmap { (title, data) ->
             val document = app.get(data).document
@@ -26,11 +25,11 @@ class YallaShoots : MainAPI() {
                 if(it.select("a").attr("href") === "$mainUrl/#/") return@mapNotNull null
                 val linkElement = it.select("a")
                 LiveSearchResponse(
-                    linkElement.attr("title"),
+                    linkElement.attr("title")+"( ${it.select("div#result").text()} )",
                     linkElement.attr("href"),
                     this@YallaShoots.name,
                     TvType.Live,
-                    document.select(".blog-post:contains(${linkElement.attr("title").replace("Vs ","و")}) img").attr("src"),
+                    "https://img.zr5.repl.co/vs?title=${linkElement.attr("title")}&leftUrl=${it.select("div.left-team img").attr("data-src")}&rightUrl=${it.select("div.right-team img").attr("data-src")}",
                     lang = "ar"
                 )
             }
@@ -42,7 +41,7 @@ class YallaShoots : MainAPI() {
                                   mainUrl,
                                   this@YallaShoots.name,
                                   TvType.Live,
-                                  "$mainUrl/wp-content/uploads/2021/12/يلا-شوت-1.png",
+                                  "https://img.zr5.repl.co/vs",
                                   lang = "ar"
                               ))
                 },
@@ -70,7 +69,7 @@ class YallaShoots : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val doc = app.get("$data?serv=2").document
-        val sourceLink = doc.select("script:contains(.m3u8)").html().replace(".*hls: \"|\"};.*".toRegex(),"")
+        val sourceLink = doc.select("body > div.albaplayer_server-body > div.video-con.embed-responsive > script:nth-child(5)").html().replace(".*hls: \"|\"\\};.*".toRegex(),"")
         callback.invoke(
             ExtractorLink(
                 this.name,
