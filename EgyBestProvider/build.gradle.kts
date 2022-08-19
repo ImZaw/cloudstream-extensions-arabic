@@ -8,5 +8,5 @@ cloudstream {
 
     tvTypes = listOf( "TvSeries" , "Movie" , "Anime" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=www.egy.best&sz=24"
+    iconUrl = "https://www.google.com/s2/favicons?domain=www.egy.best&sz=%size%"
 }

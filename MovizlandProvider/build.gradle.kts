@@ -8,5 +8,5 @@ cloudstream {
 
     tvTypes = listOf( "Movie" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=movizland.cyou&sz=24"
+    iconUrl = "https://www.google.com/s2/favicons?domain=movizland.cyou&sz=%size%"
 }

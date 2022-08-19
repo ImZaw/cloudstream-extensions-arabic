@@ -8,5 +8,5 @@ cloudstream {
 
     tvTypes = listOf( "Live" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=www.yalla-shoots.com&sz=24"
+    iconUrl = "https://www.google.com/s2/favicons?domain=www.yalla-shoots.com&sz=%size%"
 }
