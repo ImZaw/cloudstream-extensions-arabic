@@ -145,19 +145,29 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val player = app.get(app.get(data).document.select("iframe[name=\"player_iframe\"]").attr("src"), interceptor = cfKiller).document
-        player.select("div.quality_change button.hd_btn").map {
-            callback.invoke(
-                ExtractorLink(
-                    this.name,
-                    this.name,
-                    it.attr("data-url"),
-                    this.mainUrl,
-                    quality = it.text().getIntFromText() ?: Qualities.Unknown.value,
-                    isM3u8 = true
-                )
-            )
-        }
+        val player = app.get(app.get(data).document.select("iframe[name=\"player_iframe\"]").attr("src"), interceptor = cfKiller, referer = data).document
+		
+		callback.invoke(
+			ExtractorLink(
+			this.name,
+			this.name,
+			player.select("div.dl-link a").attr("href"),
+			this.mainUrl,
+			Qualities.Unknown.value
+			)
+		)
+		//player.select("div.quality_change button.hd_btn").map {
+        //    callback.invoke(
+        //        ExtractorLink(
+        //            this.name,
+        //            this.name,
+        //            it.attr("data-url"),
+        //            this.mainUrl,
+        //            quality = it.text().getIntFromText() ?: Qualities.Unknown.value,
+        //            isM3u8 = true
+        //        )
+        //   )
+        //}
         return true
     }
 }
