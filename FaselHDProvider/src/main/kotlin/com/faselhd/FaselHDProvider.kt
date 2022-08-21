@@ -145,7 +145,7 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val player = app.get(app.get(data).document.select(".downloadLinks a")?.first()?.attr("href"), interceptor = cfKiller, referer = data).document
+        val player = app.get(app.get(data).document.select(".downloadLinks a").first().attr("href"), interceptor = cfKiller, referer = data).document
 		
 		callback.invoke(
 			ExtractorLink(
