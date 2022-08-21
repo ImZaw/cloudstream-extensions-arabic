@@ -2,7 +2,9 @@ version = 1
 
 cloudstream {
     description = ""
-    authors = listOf( "ImZaw" )
+    authors = listOf( "Spoonge" )
+	
+	language = "ar"
 
     status = 1
 

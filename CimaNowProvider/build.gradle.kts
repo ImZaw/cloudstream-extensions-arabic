@@ -4,6 +4,8 @@ cloudstream {
     description = ""
     authors = listOf( "ImZaw" )
 
+	language = "ar"
+	
     status = 1
 
     tvTypes = listOf( "TvSeries" , "Movie" )

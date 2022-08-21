@@ -2,8 +2,10 @@ version = 1
 
 cloudstream {
     description = ""
-    authors = listOf( "ImZaw" )
-
+    authors = listOf( "Blatzar" )
+	
+	language = "ar"
+	
     status = 1
 
     tvTypes = listOf( "TvSeries" , "Movie" , "Anime" , "Cartoon" )
