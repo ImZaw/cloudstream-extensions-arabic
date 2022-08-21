@@ -12,7 +12,8 @@ class FaselHD : MainAPI() {
     override val usesWebView = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.AsianDrama, TvType.Anime)
-
+	
+	val cfKiller = CloudflareKiller()
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
     }
@@ -42,7 +43,7 @@ class FaselHD : MainAPI() {
         )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        val doc = app.get(request.data + page).document
+        val doc = app.get(request.data + page, interceptor = cfKiller).document
         val list = doc.select("div[id=\"postList\"] div[class=\"col-xl-2 col-lg-2 col-md-3 col-sm-3\"]")
             .mapNotNull { element ->
                 element.toSearchResponse()
@@ -52,7 +53,7 @@ class FaselHD : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val q = query.replace(" ","+")
-        val d = app.get("$mainUrl/?s=$q").document
+        val d = app.get("$mainUrl/?s=$q", interceptor = cfKiller).document
         return d.select("div[id=\"postList\"] div[class=\"col-xl-2 col-lg-2 col-md-3 col-sm-3\"]")
             .mapNotNull {
                 it.toSearchResponse()
@@ -61,7 +62,7 @@ class FaselHD : MainAPI() {
 
 
     override suspend fun load(url: String): LoadResponse {
-        val doc = app.get(url).document
+        val doc = app.get(url, interceptor = cfKiller).document
         val isMovie = doc.select("div.epAll").isEmpty()
         val posterUrl = doc.select("div.posterImg img").attr("src")
             .ifEmpty { doc.select("div.seasonDiv.active img").attr("data-src") }
@@ -142,7 +143,7 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val player = app.get(app.get(data).document.select("iframe[name=\"player_iframe\"]").attr("src")).document
+        val player = app.get(app.get(data, interceptor = cfKiller).document.select("iframe[name=\"player_iframe\"]").attr("src"), interceptor = cfKiller).document
         player.select("div.quality_change button.hd_btn").map {
             callback.invoke(
                 ExtractorLink(
