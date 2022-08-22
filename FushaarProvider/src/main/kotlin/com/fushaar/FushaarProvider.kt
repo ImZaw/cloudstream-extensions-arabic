@@ -6,7 +6,7 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
 
-class FushaarProvider : MainAPI() {
+class Fushaar : MainAPI() {
     override var lang = "ar"
     override var mainUrl = "https://www.fushaar.com"
     override var name = "Fushaar"
@@ -29,7 +29,7 @@ class FushaarProvider : MainAPI() {
         return MovieSearchResponse(
             title,
             url.select("a").attr("href"),
-            this@FushaarProvider.name,
+            this@Fushaar.name,
             TvType.Movie,
             posterUrl,
             year,
