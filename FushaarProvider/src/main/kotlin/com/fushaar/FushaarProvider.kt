@@ -2,10 +2,8 @@ package com.lagradost.cloudstream3.movieproviders
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
-import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
-import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.nodes.Element
 
 class FushaarProvider : MainAPI() {
@@ -33,17 +31,15 @@ class FushaarProvider : MainAPI() {
             url.select("a").attr("href"),
             this@FushaarProvider.name,
             TvType.Movie,
-            posterUrl.also{print("posterurl :"+it)},
+            posterUrl,
             year,
             null,
             quality = getQualityFromString(quality),
         )
     }
 
-    override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        // Title, Url
-        val moviesUrl = listOf(
-            "Movies" to "$mainUrl/page/" + (0..25).random(),
+    override val mainPage = mainPageOf(
+            "Movies" to "$mainUrl" + (0..25).random(),
             "Herror" to "$mainUrl/gerne/herror",
             "Thriller" to "$mainUrl/gerne/thriller",
             "Action" to "$mainUrl/gerne/action",
@@ -62,29 +58,22 @@ class FushaarProvider : MainAPI() {
             "Romance" to "$mainUrl/gerne/romance",
             "Mystery" to "$mainUrl/gerne/mystery"
         )
-        val pages = moviesUrl.apmap {
-            val doc = app.get(it.second).document
-            val list = doc.select("article.poster").mapNotNull { element ->
-                element.toSearchResponse()
-            }
-            HomePageList(it.first, list)
-        }.sortedBy { it.name }
-        return HomePageResponse(pages)
+
+    override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
+        val doc = app.get(request.data + "/page/$page/").document
+        val list = doc.select("article.poster").mapNotNull { element ->
+            element.toSearchResponse()
+        }
+        return newHomePageResponse(request.name, list)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
         val q = query.replace(" ", "%20")
-        val result = arrayListOf<SearchResponse>()
-        listOf(
-            "$mainUrl/?s=$q",
-        ).apmap { url ->
-            val d = app.get(url).document
-            d.select("article.poster").mapNotNull {
-                it.toSearchResponse()?.let { it1 -> result.add(it1) }
-            }
+        return app.get("$mainUrl/?s=$q").document.select("article.poster").mapNotNull {
+            it.toSearchResponse()
         }
-        return result.distinct().sortedBy { it.name }
     }
+
 
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
@@ -100,9 +89,9 @@ class FushaarProvider : MainAPI() {
             title,
             url,
             TvType.Movie,
-            "$url"
+            url
         ) {
-            this.posterUrl = posterUrl.also{print("posterurl2 :"+it)}
+            this.posterUrl = posterUrl
             this.year = year
             this.tags = tags
             this.plot = synopsis
@@ -125,7 +114,7 @@ class FushaarProvider : MainAPI() {
                         name = name,
                         url = it.html().substring(252,384),
                         referer = this.mainUrl,
-                        quality = 1080,
+                        quality = Qualities.Unknown.value,
                         isM3u8 = true
                     )
                 )
