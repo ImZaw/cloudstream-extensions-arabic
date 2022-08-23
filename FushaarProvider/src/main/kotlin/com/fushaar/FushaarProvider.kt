@@ -39,7 +39,7 @@ class Fushaar : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-            "Movies" to "$mainUrl" + (0..25).random(),
+            "Movies" to "$mainUrl",
             "Herror" to "$mainUrl/gerne/herror",
             "Thriller" to "$mainUrl/gerne/thriller",
             "Action" to "$mainUrl/gerne/action",
