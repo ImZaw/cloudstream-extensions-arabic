@@ -39,28 +39,28 @@ class Fushaar : MainAPI() {
     }
 
     override val mainPage = mainPageOf(
-            "Movies" to "$mainUrl",
-            "Herror" to "$mainUrl/gerne/herror",
-            "Thriller" to "$mainUrl/gerne/thriller",
-            "Action" to "$mainUrl/gerne/action",
-            "Animation" to "$mainUrl/gerne/animation",
-            "Comedy" to "$mainUrl/gerne/comedy",
-            "Sci-fi" to "$mainUrl/gerne/sci-fi",
-            "Crime" to "$mainUrl/gerne/crime",
-            "Drama" to "$mainUrl/gerne/drama",
-            "Adventure" to "$mainUrl/gerne/adventure",
-            "Biography" to "$mainUrl/gerne/biography",
-            "Music" to "$mainUrl/gerne/music",
-            "Sport" to "$mainUrl/gerne/sport",
-            "Documentary" to "$mainUrl/gerne/documentary",
-            "History" to "$mainUrl/gerne/history",
-            "Family" to "$mainUrl/gerne/family",
-            "Romance" to "$mainUrl/gerne/romance",
-            "Mystery" to "$mainUrl/gerne/mystery"
+            "$mainUrl/page/" to "Movies",
+            "$mainUrl/gerne/action/page/" to "Action",
+            "$mainUrl/gerne/adventure/page/" to "Adventure",
+            "$mainUrl/gerne/animation/page/" to "Animation",
+            "$mainUrl/gerne/biography/page/" to "Biography",
+            "$mainUrl/gerne/comedy/page/" to "Comedy",
+            "$mainUrl/gerne/crime/page/" to "Crime",
+            "$mainUrl/gerne/documentary/page/" to "Documentary",
+            "$mainUrl/gerne/drama/page/" to "Drama",
+            "$mainUrl/gerne/family/page/"	to "Family",
+            "$mainUrl/gerne/herror/page/" to "Herror",
+            "$mainUrl/gerne/history/page/" to "History",
+            "$mainUrl/gerne/music/page/" to "Music",
+            "$mainUrl/gerne/mystery/page/" to "Mystery",
+            "$mainUrl/gerne/romance/page/" to "Romance",
+            "$mainUrl/gerne/sci-fi/page/" to "Sci-fi",
+            "$mainUrl/gerne/sport/page/" to "Sport",
+            "$mainUrl/gerne/thriller/page/" to "Thriller",         
         )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        val doc = app.get(request.data + "/page/$page/").document
+        val doc = app.get(request.data + page).document
         val list = doc.select("article.poster").mapNotNull { element ->
             element.toSearchResponse()
         }
