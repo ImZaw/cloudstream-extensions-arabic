@@ -43,7 +43,7 @@ class Movizland : MainAPI() {
             title,
             url.select("a").attr("href"),
             this@Movizland.name,
-            if(url.select("div.BlockTitle").text().contains("فيلم")) TvType.Movie else TvType.TvSeries,
+            TvType.Movie,
             posterUrl,
             year,
             null,
@@ -53,12 +53,14 @@ class Movizland : MainAPI() {
     }
     override val mainPage = mainPageOf(
         "$mainUrl/category/movies/page/" to "Movies",
-        "$mainUrl/quality/4K/page/" to "4K",
-        "$mainUrl/quality/1080p-bluray/page/" to "Bluray",
         "$mainUrl/category/movies/anime/page/" to "Animation",
+        "$mainUrl/category/movies/arab/page/" to "Arab",
+        "$mainUrl/category/movies/asia/page/" to "Asia",
         "$mainUrl/category/movies/documentary/page/" to "Documentary",
-        "$mainUrl/category/movies/netflix/page/" to "Netflix",
         "$mainUrl/category/movies/foreign/page/" to "Foreign",
+        "$mainUrl/category/movies/india/page/" to "India",
+        "$mainUrl/category/movies/netflix/page/" to "Netflix",
+        "$mainUrl/category/movies/turkey/page/" to "Turkey",
     )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
