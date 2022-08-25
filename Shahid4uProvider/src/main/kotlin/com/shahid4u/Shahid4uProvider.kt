@@ -162,7 +162,7 @@ class Shahid4u : MainAPI() {
         val watchUrl = "$data/watch"
         app.get(watchUrl).document.select(
             ".servers-list li:contains(ok), li:contains(Streamtape), li:contains(DoodStream), li:contains(Uqload), li:contains(Voe), li:contains(VIDBOM), li:contains(Upstream)"
-        ).forEach {
+        ).apmap {
             val id = it.attr("data-id")
             val i = it.attr("data-i")
             val sourceUrl = app.post(
