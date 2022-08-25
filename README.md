@@ -1,3 +1,3 @@
-# Arabic plugins for CloudStream
+# Arabic providers repository for CloudStream
 
-[Download](https://cs.repo/?raw.githubusercontent.com/ImZaw/cloudstream-extensions-arabic/builds/repo.json)
+[Download](https://recloudstream.github.io/repos)
