@@ -8,7 +8,7 @@ cloudstream {
 	
     status = 1
 
-    tvTypes = listOf( "Anime", "TVSeries", "Movie" )
+    tvTypes = listOf( "Anime", "AnimeMovie", "Cartoon" )
 
     iconUrl = "https://b.gateanime.cam/wp-content/uploads/2020/12/cropped-Favicon-192x192.png"
 }
