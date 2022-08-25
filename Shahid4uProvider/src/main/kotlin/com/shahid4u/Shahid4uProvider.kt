@@ -14,7 +14,10 @@ class Shahid4u : MainAPI() {
     override val hasMainPage = true
     override val supportedTypes =
         setOf(TvType.TvSeries, TvType.Movie, TvType.Anime, TvType.AsianDrama)
-
+	
+	private fun String.getDomainFromUrl(): String? {
+        return Regex("""^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n\?\=]+)""").find(this)?.groupValues?.firstOrNull()
+    }
     private fun Element.toSearchResponse(): SearchResponse? {
         val urlElement = select("a.fullClick")
         val posterUrl =
@@ -163,7 +166,7 @@ class Shahid4u : MainAPI() {
             val id = it.attr("data-id")
             val i = it.attr("data-i")
             val sourceUrl = app.post(
-                "https://shahed4u.mx/wp-content/themes/Shahid4u-WP_HOME/Ajaxat/Single/Server.php",
+                "${data.getDomainFromUrl()}/wp-content/themes/Shahid4u-WP_HOME/Ajaxat/Single/Server.php",
                 headers = mapOf("referer" to watchUrl, "x-requested-with" to "XMLHttpRequest"),
                 data = mapOf("id" to id, "i" to i)
             ).document.select("iframe").attr("src")
