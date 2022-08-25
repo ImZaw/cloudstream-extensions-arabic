@@ -129,10 +129,8 @@ class GateAnime : MainAPI() {
         ).apmap {
                 val id = it.attr("data-tplayernv")
                 val iframeLink = doc.select("div#$id").html().replace(".*src=\"|\".*|#038;|amp;".toRegex(), "").replace("<noscript>.*".toRegex(),"")
-                println("iframeLink: $iframeLink")
                 var sourceUrl = app.get(iframeLink).document.select("iframe").attr("src")
                 if(sourceUrl.contains("ok.ru")) sourceUrl = "https:" + sourceUrl
-                println(sourceUrl)
                 loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
         return true
