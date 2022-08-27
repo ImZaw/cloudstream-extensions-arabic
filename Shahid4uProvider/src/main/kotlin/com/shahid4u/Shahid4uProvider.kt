@@ -169,7 +169,7 @@ class Shahid4u : MainAPI() {
                 "${data.getDomainFromUrl()}/wp-content/themes/Shahid4u-WP_HOME/Ajaxat/Single/Server.php",
                 headers = mapOf("referer" to watchUrl, "x-requested-with" to "XMLHttpRequest"),
                 data = mapOf("id" to id, "i" to i)
-            ).document.select("iframe").attr("src")
+            ).document.select("iframe").attr("src").replace(" ", "")
             loadExtractor(sourceUrl, watchUrl, subtitleCallback, callback)
         }
         return true
