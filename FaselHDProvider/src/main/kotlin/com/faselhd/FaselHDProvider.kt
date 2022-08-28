@@ -3,8 +3,9 @@ package com.faselhd
 
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.network.CloudflareKiller
-import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.nicehttp.requestCreator
+import com.lagradost.cloudstream3.network.WebViewResolver
+import com.lagradost.cloudstream3.utils.M3u8Helper
 import org.jsoup.nodes.Element
 
 class FaselHD : MainAPI() {
@@ -14,8 +15,7 @@ class FaselHD : MainAPI() {
     override val usesWebView = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.AsianDrama, TvType.Anime)
-    
-    val cfKiller = CloudflareKiller()
+
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
     }
@@ -145,29 +145,19 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val player = app.get(app.get(data).document.select(".downloadLinks a").attr("href"), interceptor = cfKiller, referer = data).document
-		
-		callback.invoke(
-			ExtractorLink(
-			this.name,
-			this.name,
-			player.select("div.dl-link a").attr("href"),
-			this.mainUrl,
-			Qualities.Unknown.value
-			)
-		)
-		//player.select("div.quality_change button.hd_btn").map {
-        //    callback.invoke(
-        //        ExtractorLink(
-        //            this.name,
-        //            this.name,
-        //            it.attr("data-url"),
-        //            this.mainUrl,
-        //            quality = it.text().getIntFromText() ?: Qualities.Unknown.value,
-        //            isM3u8 = true
-        //        )
-        //   )
-        //}
+        val urlToRequest = app.get(data).document.select("iframe[name=\"player_iframe\"]").attr("src")
+        val webView = WebViewResolver(
+            Regex("""master\.m3u8""")
+        ).resolveUsingWebView(
+            requestCreator(
+                "GET", urlToRequest, referer = mainUrl
+            )
+        ).first
+        M3u8Helper.generateM3u8(
+            this.name,
+            webView?.url.toString(),
+            referer = mainUrl
+        ).forEach(callback)
         return true
     }
 }
