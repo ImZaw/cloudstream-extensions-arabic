@@ -6,6 +6,8 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.nicehttp.requestCreator
 import com.lagradost.cloudstream3.network.WebViewResolver
 import com.lagradost.cloudstream3.utils.M3u8Helper
+import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.network.CloudflareKiller
 import org.jsoup.nodes.Element
 
 class FaselHD : MainAPI() {
@@ -145,12 +147,22 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val urlToRequest = app.get(data).document.select("iframe[name=\"player_iframe\"]").attr("src")
+        val doc = app.get(data).document
+        val player = app.get(doc.select(".downloadLinks a").attr("href"), interceptor = CloudflareKiller(), referer = data).document
+        callback.invoke(
+            ExtractorLink(
+                this.name,
+                this.name + "Download Source",
+                player.select("div.dl-link a").attr("href"),
+                this.mainUrl,
+                Qualities.Unknown.value
+            )
+        )
         val webView = WebViewResolver(
             Regex("""master\.m3u8""")
         ).resolveUsingWebView(
             requestCreator(
-                "GET", urlToRequest, referer = mainUrl
+                "GET", doc.select("iframe[name=\"player_iframe\"]").attr("src"), referer = mainUrl
             )
         ).first
         M3u8Helper.generateM3u8(
