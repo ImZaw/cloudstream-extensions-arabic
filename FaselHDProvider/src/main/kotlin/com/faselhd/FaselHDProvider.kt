@@ -148,28 +148,37 @@ class FaselHD : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val doc = app.get(data).document
-        val player = app.get(doc.select(".downloadLinks a").attr("href"), interceptor = CloudflareKiller(), referer = data).document
-        callback.invoke(
-            ExtractorLink(
-                this.name,
-                this.name + "Download Source",
-                player.select("div.dl-link a").attr("href"),
-                this.mainUrl,
-                Qualities.Unknown.value
-            )
-        )
-        val webView = WebViewResolver(
-            Regex("""master\.m3u8""")
-        ).resolveUsingWebView(
-            requestCreator(
-                "GET", doc.select("iframe[name=\"player_iframe\"]").attr("src"), referer = mainUrl
-            )
-        ).first
-        M3u8Helper.generateM3u8(
-            this.name,
-            webView?.url.toString(),
-            referer = mainUrl
-        ).forEach(callback)
+        listOf(
+            doc.select(".downloadLinks a").attr("href") to "download",
+            doc.select("iframe[name=\"player_iframe\"]").attr("src") to "iframe"
+        ).apmap { (url, method) ->
+            if(method == "download") {
+                val player = app.get(url, interceptor = CloudflareKiller(), referer = mainUrl).document
+                println(player)
+                callback.invoke(
+                    ExtractorLink(
+                        this.name,
+                        this.name + " Download Source",
+                        player.select("div.dl-link a").attr("href"),
+                        this.mainUrl,
+                        Qualities.Unknown.value
+                    )
+                )
+            } else if(method == "iframe") {
+                val webView = WebViewResolver(
+                    Regex("""master\.m3u8""")
+                ).resolveUsingWebView(
+                    requestCreator(
+                        "GET", url, referer = mainUrl
+                    )
+                ).first
+                M3u8Helper.generateM3u8(
+                    this.name,
+                    webView?.url.toString(),
+                    referer = mainUrl
+                ).forEach(callback)
+            }
+        }
         return true
     }
 }
