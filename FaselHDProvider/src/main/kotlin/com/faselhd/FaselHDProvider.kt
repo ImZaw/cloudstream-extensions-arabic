@@ -153,8 +153,8 @@ class FaselHD : MainAPI() {
             doc.select("iframe[name=\"player_iframe\"]").attr("src") to "iframe"
         ).apmap { (url, method) ->
             if(method == "download") {
-                val player = app.get(url, interceptor = CloudflareKiller(), referer = mainUrl).document
-                println(player)
+                val player = app.post(url, interceptor = CloudflareKiller(), referer = mainUrl).document
+                
                 callback.invoke(
                     ExtractorLink(
                         this.name,
