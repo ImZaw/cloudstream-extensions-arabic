@@ -251,7 +251,7 @@ class EgyBest : MainAPI() {
                     link,
                     this.mainUrl,
                     quality!!,
-                    true,
+                    link.replace(".*\.".toRegex(),"") == "m3u8",
                     // Does not work without these headers!
                     headers = mapOf("range" to "bytes=0-"),
                 )
