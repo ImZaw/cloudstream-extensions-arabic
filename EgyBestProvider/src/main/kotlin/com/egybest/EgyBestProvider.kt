@@ -237,7 +237,7 @@ class EgyBest : MainAPI() {
 
         return true*/
 
-        val requestJSON = app.get("https://api.zr5.repl.co/egybest?url=$data").text
+        val requestJSON = app.get("https://egybest-sgu8utcomnfb.runkit.sh/egybest?url=$data").text
         // To solve this you need to send a verify request which is pretty hidden, see
         // https://vear.egybest.deals/tvc.php?verify=.......
         val jsonArray = parseJson<List<Sources>>(requestJSON)
