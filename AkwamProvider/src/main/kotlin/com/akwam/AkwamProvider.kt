@@ -77,7 +77,9 @@ class Akwam : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
-        val isMovie = url.contains("/movie/")
+        val mesEl = doc.select("#downloads > h2 > span").isNotEmpty()
+        val mesSt = if(mesEl) true else false
+        val isMovie = mesSt//url.contains("/movie/")
         val title = doc.select("h1.entry-title").text()
         val posterUrl = doc.select("picture > img").attr("src")
 
@@ -105,6 +107,8 @@ class Akwam : MainAPI() {
             val image = it.selectFirst("div > img")?.attr("src") ?: return@mapNotNull null
             Actor(name, image)
         }
+        
+
 
         val recommendations =
             doc.select("div > div.widget-body > div.row > div > div.entry-box").mapNotNull {
@@ -191,7 +195,7 @@ class Akwam : MainAPI() {
                 } else {
                     val url = "$mainUrl/download${
                         linkElement.attr("href").split("/link")[1]
-                    }${data.split("/movie|/episode|/show/episode".toRegex())[1]}"
+                    }${data.split("/movie|/episode|/shows|/show/episode".toRegex())[1]}"
                     Pair(
                         url,
                         quality,
