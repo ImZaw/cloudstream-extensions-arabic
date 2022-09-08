@@ -84,7 +84,7 @@ class Fushaar : MainAPI() {
         var doc = app.get(url).document
         val posterUrl = doc.select("figure.poster noscript img").attr("src")
         val year = doc.select("header span.yearz").text()?.getIntFromText()
-        val title = doc.select("header h1").text()+"\n"+doc.select("header h2").text()
+        val title = doc.select("header h1").text()+" | "+doc.select("header h2").text()
         val synopsis = doc.select("div.postz").text()
         val trailer = doc.select("div.rll-youtube-player iframe").attr("src")
         val tags = doc.select("li.iifo").map { it.select("span.z-s-i").text()+" "+it.select("h8").text() }
