@@ -43,21 +43,34 @@ class EgyBest : MainAPI() {
             quality = getQualityFromString(quality)
         )
     }
-
+    override val mainPage = mainPageOf(
+      "$mainUrl/trending/?page=" to "الأفلام الأكثر مشاهدة",
+      "$mainUrl/movies/?page=" to "أفلام جديدة",
+      "$mainUrl/tv/?page=" to "مسلسلات جديدة ",
+      "$mainUrl/tv/korean?page=" to "الدراما الكورية ",
+      "$mainUrl/animes/popular?page=" to "مسلسلات الانمي",
+      "$mainUrl/wwe/?page=" to "عروض المصارعة ",
+      "$mainUrl/movies/latest-bluray-2020-2019?page=" to "أفلام جديدة BluRay",
+      "$mainUrl/masrahiyat/?page=" to "مسرحيات ",
+      "$mainUrl/movies/latest?page=" to "أحدث الاضافات",
+      "$mainUrl/movies/comedy?page=" to "أفلام كوميدية",
+      "$mainUrl/explore/?q=superhero?page=" to "أفلام سوبر هيرو",
+      "$mainUrl/movies/animation?page=" to "أفلام انمي و كرتون",
+      "$mainUrl/movies/romance?page=" to "أفلام رومانسية",
+      "$mainUrl/movies/drama?page=" to "أفلام دراما",
+      "$mainUrl/movies/horror?page=" to "أفلام رعب",
+      "$mainUrl/movies/documentary?page=" to "أفلام وثائقية",
+      "$mainUrl/World-War-Movies/?page=" to "أفلام عن الحرب العالمية ☢",
+      "$mainUrl/End-Of-The-World-Movies/?page=" to "أفلام عن نهاية العالم",
+      "$mainUrl/movies/arab?page=" to "أفلام عربية ",
+    )
+    
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        // url, title
-        val doc = app.get(mainUrl).document
-        val pages = arrayListOf<HomePageList>()
-        doc.select("#mainLoad div.mbox").apmap {
-            val name = it.select(".bdb.pda > strong").text()
-            if (it.select(".movie").first()?.attr("href")?.contains("season-(.....)|ep-(.....)".toRegex()) == true) return@apmap
-            val list = arrayListOf<SearchResponse>()
-            it.select(".movie").map { element ->
-                list.add(element.toSearchResponse()!!)
-            }
-            pages.add(HomePageList(name, list))
+        val doc = app.get(request.data + page).document
+        val list = it.select(".movie").map { element ->
+                element.toSearchResponse()
         }
-        return HomePageResponse(pages)
+        return newHomePageResponse(request.name, list)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
