@@ -36,8 +36,9 @@ class Animeiat : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        "$mainUrl/anime?page=" to "Anime",
-        "$mainUrl/home/sticky-episodes?page=" to "Episodes (H)"
+        "$mainUrl/home/sticky-episodes?page=" to "Episodes (H)",
+        "$mainUrl/anime?status=completed&page=" to "Completed",
+        "$mainUrl/anime?status=ongoing&page=" to "Ongoing",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
@@ -53,12 +54,9 @@ class Animeiat : MainAPI() {
                 this.posterUrl = "https://api.animeiat.co/storage/" + it.posterPath
             }
         }
-        return HomePageResponse(arrayListOf(
-            HomePageList(
-                request.name.replace(" (H)",""), list, request.name.contains("(H)")
-            )
-          )
-        )
+        return if(request.name.contains("(H)")) HomePageResponse(
+            arrayListOf(HomePageList(request.name.replace(" (H)",""), list, request.name.contains("(H)")))
+        ) else newHomePageResponse(request.name, list)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
