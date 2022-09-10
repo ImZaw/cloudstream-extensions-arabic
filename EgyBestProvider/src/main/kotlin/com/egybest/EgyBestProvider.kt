@@ -67,7 +67,7 @@ class EgyBest : MainAPI() {
     
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val doc = app.get(request.data + page).document
-        val list = it.select(".movie").map { element ->
+        val list = doc.select(".movie").map { element ->
                 element.toSearchResponse()
         }
         return newHomePageResponse(request.name, list)
