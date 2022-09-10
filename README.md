@@ -1,5 +1,5 @@
 # Arabic providers repository for CloudStream
 
-[Download](https://cloudstream-extensions-arabic.zr5.repl.co/?click=download)
+[Download](https://recloudstream.github.io/repos/)
 
-[Site request](https://cloudstream-extensions-arabic.zr5.repl.co/site-request)
+[Site request](https://github.com/ImZaw/cloudstream-extensions-arabic/issues/8)
