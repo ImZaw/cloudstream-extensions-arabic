@@ -86,7 +86,7 @@ class Fushaar : MainAPI() {
         val year = doc.select("header span.yearz").text()?.getIntFromText()
         val title = doc.select("header h1").text()+" | "+doc.select("header h2").text()
         val synopsis = doc.select("div.postz").text()
-        val trailer = doc.select("div.rll-youtube-player iframe").attr("src")
+        val trailer = doc.select("#new-stream > div > div.ytb > a").attr("href")
         val tags = doc.select("li.iifo").map { it.select("span.z-s-i").text()+" "+it.select("h8").text() }
         val rating = doc.select("body > div.new-info.hide-mobile > div > div.z-imdb > div").text()?.toRatingInt()
         val recommendations = doc.select("article.poster").mapNotNull { element ->
