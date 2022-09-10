@@ -1,0 +1,49 @@
+var typeTemplate = `<span class="font-light inline-block" style="font-size:10px;">{{type}}</span>`
+var template = `
+<div class="plugin flex justify-start flex-col items-center p-4 bg-slate-900 max-h-80 border-black border-2 rounded drop-shadow-md">
+    <div class="image">
+        <img class="rounded-full h-12 w-12 sm:h-20 sm:w-20 object-cover" src="{{icon_url}}" onerror="this.onerror=null;this.src='https://cdn0.iconfinder.com/data/icons/file-management-system-flat/32/file_managemenr_system_icon_set_flat_style-14-512.png';">
+        <svg class="inline relative bottom-6" height="25" width="25">
+            <circle cx="12.5" cy="12.5" r="10" fill="{{status}}" />
+        </svg>
+    </div>
+    <div class="font-medium text-center break-word">
+        <span><a href="{{url}}">{{name}}</a></span>
+        <span class="font-light text-sm block">Language: {{language}}</span>
+        <span class="font-light text-xs block">Version: {{version}}</span>
+        <span class="font-light text-xs block">Authors: {{authors}}</span>
+        {{types}}
+        <span class="font-light text-sm block">
+            {{description}}
+        </span>
+    </div>
+</div>`
+
+
+
+var rawRepoUrl = "https://raw.githubusercontent.com/ImZaw/cloudstream-extensions-arabic/builds/repo.json"
+$.getJSON( rawRepoUrl , function( data ) {
+    var title = data.name
+    $("#title").text(title)
+    data.pluginLists.forEach(url => {
+        $.getJSON( url , function( data ) {
+            data.forEach(plugin => {
+                var statusColor;
+                var types = plugin.tvTypes?.map(tvType=> typeTemplate.replace("{{type}}", tvType))
+                if(plugin.status == 0) statusColor = "red"; else if(plugin.status == 1) statusColor = "green"; else statusColor = "yellow"
+                $(".plugins > #grid").append(
+                    template
+                    .replace("{{icon_url}}", plugin.iconUrl?.replace("%size%", "128") ?? "https://cdn0.iconfinder.com/data/icons/file-management-system-flat/32/file_managemenr_system_icon_set_flat_style-14-512.png")
+                    .replace("{{status}}", statusColor)
+                    .replace("{{url}}", plugin.url)
+                    .replace("{{name}}", plugin.name)
+                    .replace("{{language}}", plugin.language)
+                    .replace("{{authors}}", plugin.authors?.join(","))
+                    .replace("{{version}}", plugin.version)
+                    .replace("{{types}}", types.join("\n"))
+                    .replace("{{description}}", plugin.description ?? "")
+                    )
+            })
+        })
+    });
+});
