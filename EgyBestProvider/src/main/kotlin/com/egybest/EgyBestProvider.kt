@@ -56,7 +56,7 @@ class EgyBest : MainAPI() {
         "$mainUrl/masrahiyat/?page=" to "مسرحيات ",
         "$mainUrl/movies/latest?page=" to "أحدث الاضافات",
         "$mainUrl/movies/comedy?page=" to "أفلام كوميدية",
-        "$mainUrl/explore/?q=superhero?page=" to "أفلام سوبر هيرو",
+        "$mainUrl/explore/?q=superhero/" to "أفلام سوبر هيرو",
         "$mainUrl/movies/animation?page=" to "أفلام انمي و كرتون",
         "$mainUrl/movies/romance?page=" to "أفلام رومانسية",
         "$mainUrl/movies/drama?page=" to "أفلام دراما",
