@@ -9,6 +9,7 @@ import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
 import com.lagradost.nicehttp.Requests
+import com.lagradost.cloudstream3.newHomePageResponse as newHomePageResponse
 
 class EgyBest : MainAPI() {
     override var lang = "ar"
@@ -43,33 +44,35 @@ class EgyBest : MainAPI() {
             quality = getQualityFromString(quality)
         )
     }
+
     override val mainPage = mainPageOf(
-      "$mainUrl/trending/?page=" to "الأفلام الأكثر مشاهدة",
-      "$mainUrl/movies/?page=" to "أفلام جديدة",
-      "$mainUrl/tv/?page=" to "مسلسلات جديدة ",
-      "$mainUrl/tv/korean?page=" to "الدراما الكورية ",
-      "$mainUrl/animes/popular?page=" to "مسلسلات الانمي",
-      "$mainUrl/wwe/?page=" to "عروض المصارعة ",
-      "$mainUrl/movies/latest-bluray-2020-2019?page=" to "أفلام جديدة BluRay",
-      "$mainUrl/masrahiyat/?page=" to "مسرحيات ",
-      "$mainUrl/movies/latest?page=" to "أحدث الاضافات",
-      "$mainUrl/movies/comedy?page=" to "أفلام كوميدية",
-      "$mainUrl/explore/?q=superhero?page=" to "أفلام سوبر هيرو",
-      "$mainUrl/movies/animation?page=" to "أفلام انمي و كرتون",
-      "$mainUrl/movies/romance?page=" to "أفلام رومانسية",
-      "$mainUrl/movies/drama?page=" to "أفلام دراما",
-      "$mainUrl/movies/horror?page=" to "أفلام رعب",
-      "$mainUrl/movies/documentary?page=" to "أفلام وثائقية",
-      "$mainUrl/World-War-Movies/?page=" to "أفلام عن الحرب العالمية ☢",
-      "$mainUrl/End-Of-The-World-Movies/?page=" to "أفلام عن نهاية العالم",
-      "$mainUrl/movies/arab?page=" to "أفلام عربية ",
+        "$mainUrl/trending/?page=" to "الأفلام الأكثر مشاهدة",
+        "$mainUrl/movies/?page=" to "أفلام جديدة",
+        "$mainUrl/tv/?page=" to "مسلسلات جديدة ",
+        "$mainUrl/tv/korean?page=" to "الدراما الكورية ",
+        "$mainUrl/animes/popular?page=" to "مسلسلات الانمي",
+        "$mainUrl/wwe/?page=" to "عروض المصارعة ",
+        "$mainUrl/movies/latest-bluray-2020-2019?page=" to "أفلام جديدة BluRay",
+        "$mainUrl/masrahiyat/?page=" to "مسرحيات ",
+        "$mainUrl/movies/latest?page=" to "أحدث الاضافات",
+        "$mainUrl/movies/comedy?page=" to "أفلام كوميدية",
+        "$mainUrl/explore/?q=superhero?page=" to "أفلام سوبر هيرو",
+        "$mainUrl/movies/animation?page=" to "أفلام انمي و كرتون",
+        "$mainUrl/movies/romance?page=" to "أفلام رومانسية",
+        "$mainUrl/movies/drama?page=" to "أفلام دراما",
+        "$mainUrl/movies/horror?page=" to "أفلام رعب",
+        "$mainUrl/movies/documentary?page=" to "أفلام وثائقية",
+        "$mainUrl/World-War-Movies/?page=" to "أفلام عن الحرب العالمية ☢",
+        "$mainUrl/End-Of-The-World-Movies/?page=" to "أفلام عن نهاية العالم",
+        "$mainUrl/movies/arab?page=" to "أفلام عربية ",
     )
-    
+
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val doc = app.get(request.data + page).document
-        val list = doc.select(".movie").map { element ->
+        val list = doc.select(".movie")
+            .mapNotNull { element ->
                 element.toSearchResponse()
-        }
+            }
         return newHomePageResponse(request.name, list)
     }
 
