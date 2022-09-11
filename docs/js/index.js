@@ -30,18 +30,18 @@ $.getJSON( rawRepoUrl , function( data ) {
             data.forEach(plugin => {
                 var statusColor;
                 var types = plugin.tvTypes?.map(tvType=> typeTemplate.replace("{{type}}", tvType))
-                if(plugin.status == 0) statusColor = "red"; else if(plugin.status == 1) statusColor = "green"; else statusColor = "yellow"
+                if(plugin?.status == 0) statusColor = "red"; else if(plugin?.status == 1) statusColor = "green"; else statusColor = "yellow"
                 $(".plugins > #grid").append(
                     template
                     .replace("{{icon_url}}", plugin.iconUrl?.replace("%size%", "128") ?? "https://cdn0.iconfinder.com/data/icons/file-management-system-flat/32/file_managemenr_system_icon_set_flat_style-14-512.png")
                     .replace("{{status}}", statusColor)
-                    .replace("{{url}}", plugin.url)
-                    .replace("{{name}}", plugin.name)
-                    .replace("{{language}}", plugin.language)
+                    .replace("{{url}}", plugin?.url)
+                    .replace("{{name}}", plugin?.name)
+                    .replace("{{language}}", plugin?.language)
                     .replace("{{authors}}", plugin.authors?.join(","))
-                    .replace("{{version}}", plugin.version)
-                    .replace("{{types}}", types.join("\n"))
-                    .replace("{{description}}", plugin.description ?? "")
+                    .replace("{{version}}", plugin?.version)
+                    .replace("{{types}}", types?.join("\n"))
+                    .replace("{{description}}", plugin?.description ?? "")
                     )
             })
         })
