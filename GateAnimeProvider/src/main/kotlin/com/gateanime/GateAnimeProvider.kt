@@ -125,12 +125,13 @@ class GateAnime : MainAPI() {
         println("URL: $data")
         val doc = app.get(data).document
         doc.select(
-            "li:contains(Fembed), li:contains(خيارات 1), li:contains(Uptostream), li:contains(Dood), li:contains(Uqload)"
+            "li:contains(Fembed), li:contains(خيارات 1), li:contains(Uptostream), li:contains(Dood), li:contains(Uqload), li:contains(Drive)"
         ).apmap {
                 val id = it.attr("data-tplayernv")
                 val iframeLink = doc.select("div#$id").html().replace(".*src=\"|\".*|#038;|amp;".toRegex(), "").replace("<noscript>.*".toRegex(),"")
                 var sourceUrl = app.get(iframeLink).document.select("iframe").attr("src")
-                if(sourceUrl.contains("ok.ru")) sourceUrl = "https:" + sourceUrl
+                if(sourceUrl.contains("ok.ru")) sourceUrl = "https:$sourceUrl"
+                if(sourceUrl.contains("drive.google.com")) sourceUrl = "https://gdriveplayer.to/embed2.php?link=$sourceUrl"
                 loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
         return true
