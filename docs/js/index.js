@@ -22,14 +22,21 @@ var template = `
 
 
 var rawRepoUrl = "https://raw.githubusercontent.com/ImZaw/cloudstream-extensions-arabic/builds/repo.json"
+const urlSearchParams = new URLSearchParams(window.location.search);
+if(urlSearchParams.get("url")) rawRepoUrl = urlSearchParams.get("url")
 $.getJSON( rawRepoUrl , function( data ) {
     var title = data.name
-    $("#title").text(title)
     data.pluginLists.forEach(url => {
         $.getJSON( url , function( data ) {
+            $("#title").html(title + ` <span style="display:block;"><b>( ${data.length} Plugins )</b></span>`)
             data.forEach(plugin => {
                 var statusColor;
-                var types = plugin.tvTypes?.map(tvType=> typeTemplate.replace("{{type}}", tvType))
+                var types = plugin.tvTypes?.map(tvType=> {
+                    var whatToReturn = typeTemplate.replace("{{type}}", tvType)
+                    if(tvType == "NSFW") whatToReturn = whatToReturn.replace("{{style}}", "color: red;font-size: 10px;font-weight: bold;")
+                    else whatToReturn = whatToReturn.replace("{{style}}", "font-size: 10px;")
+                    return whatToReturn
+                })
                 if(plugin?.status == 0) statusColor = "red"; else if(plugin?.status == 1) statusColor = "green"; else statusColor = "yellow"
                 $(".plugins > #grid").append(
                     template
@@ -38,9 +45,9 @@ $.getJSON( rawRepoUrl , function( data ) {
                     .replace("{{url}}", plugin?.url)
                     .replace("{{name}}", plugin?.name)
                     .replace("{{language}}", plugin?.language)
-                    .replace("{{authors}}", plugin.authors?.join(","))
+                    .replace("{{authors}}", plugin.authors?.join(", ") || "Ghost")
                     .replace("{{version}}", plugin?.version)
-                    .replace("{{types}}", types?.join("\n"))
+                    .replace("{{types}}", types?.join("\n") ?? "")
                     .replace("{{description}}", plugin?.description ?? "")
                     )
             })
