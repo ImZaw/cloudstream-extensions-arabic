@@ -13,9 +13,9 @@ on:
       # - main
     paths-ignore:
       - '*.md'
-      - './docs/*.html'
-      - './docs/js/*.js'
-      - './docs/css/*.css'
+      - '*.html'
+      - '*.js'
+      - '*.css'
 
 jobs:
   build:
