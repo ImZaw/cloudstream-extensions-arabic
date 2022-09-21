@@ -4,6 +4,8 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.utils.getQualityFromName
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class Fushaar : MainAPI() {
@@ -116,8 +118,10 @@ class Fushaar : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        app.get(data).document
-            .select("#fancyboxID-download > center > a:nth-child(n+19),#fancyboxID-1 > center > a:nth-child(n+16)").map {
+        val doc = app.get(data).document
+        var sourceUrl = doc.select("div:nth-child(10) > a").attr("href")
+        loadExtractor(sourceUrl, data, subtitleCallback, callback)
+            doc.select("#fancyboxID-download > center > a:nth-child(n+19),#fancyboxID-1 > center > a:nth-child(n+16)").map {
                 callback.invoke(
                     ExtractorLink(
                         source = this.name,
