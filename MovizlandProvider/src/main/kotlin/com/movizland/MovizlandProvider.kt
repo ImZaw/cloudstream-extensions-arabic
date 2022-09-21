@@ -11,11 +11,11 @@ import org.jsoup.nodes.Element
 
 class Movizland : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://movizland.cyou"
+    override var mainUrl = "https://new.movizland.cyou"
     override var name = "Movizland"
     override val usesWebView = false
     override val hasMainPage = true
-    override val supportedTypes = setOf(TvType.Movie)
+    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.Anime, TvType.Cartoon)
 
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
@@ -23,27 +23,16 @@ class Movizland : MainAPI() {
 
     private fun Element.toSearchResponse(): SearchResponse? {
         val url = select("div.BlockItem")
-        val posterUrl = select("div img")?.attr("data-src")
+        val title = select("div.BlockTitle").text()
+        val posterUrl = if (title.contains("فيلم")) {select("div.BlockImageItem img")?.attr("src")} else {select("div.BlockImageItem > img:nth-child(3)")?.attr("src")} 
         val year = select("ul.InfoEndBlock li").last()?.text()?.getIntFromText()
         var quality = select("ul.RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")
             ?.replace("WEB DL","WEBDL")?.replace("BluRay","BLURAY")
-        val title = select("div.BlockTitle").text()
-            .replace("اون لاين", "")
-            .replace("مشاهدة و تحميل", "")
-            .replace("4K", "")
-            .replace("${year.toString()}", "")
-            .replace("فيلم", "")
-            .replace("مترجم", "")
-            .replace("مشاهدة", "")
-            .replace("بجودة", "")
-            .replace("3D", "")
-            .replace("وتحميل", "")
-        // val quality =select("ul.RestInformation li").last()?.text()
         return MovieSearchResponse(
             title,
             url.select("a").attr("href"),
             this@Movizland.name,
-            TvType.Movie,
+            TvType.TvSeries,
             posterUrl,
             year,
             null,
@@ -53,14 +42,7 @@ class Movizland : MainAPI() {
     }
     override val mainPage = mainPageOf(
         "$mainUrl/category/movies/page/" to "Movies",
-        "$mainUrl/category/movies/anime/page/" to "Animation",
-        "$mainUrl/category/movies/arab/page/" to "Arab",
-        "$mainUrl/category/movies/asia/page/" to "Asia",
-        "$mainUrl/category/movies/documentary/page/" to "Documentary",
-        "$mainUrl/category/movies/foreign/page/" to "Foreign",
-        "$mainUrl/category/movies/india/page/" to "India",
-        "$mainUrl/category/movies/netflix/page/" to "Netflix",
-        "$mainUrl/category/movies/turkey/page/" to "Turkey",
+        "$mainUrl/series/page/" to "Series",
     )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
@@ -76,39 +58,46 @@ class Movizland : MainAPI() {
         val result = arrayListOf<SearchResponse>()
         listOf(
             "$mainUrl/category/movies/?s=$q",
-            //"$mainUrl/category/series/?s=$q"
+            "$mainUrl/series/?searching=$q"
         ).apmap { url ->
             val d = app.get(url).document
             d.select("div.BlockItem").mapNotNull {
-                if (it.text().contains("اعلان")) return@mapNotNull null
+                //if (!it.text().contains("فيلم||موسم")) return@mapNotNull null
                 it.toSearchResponse()?.let { it1 -> result.add(it1) }
             }
         }
         return result.distinct().sortedBy { it.name }
     }
+    
+    
+    private fun Element.toEpisode(): Episode {
+        val a = select("div.BlockItem")
+        val url = a.select("a")?.attr("href")
+        val title = a.select("div.BlockTitle").text()
+        val thumbUrl = a.select("div.BlockImageItem img")?.attr("src")
+        val Epsnum = a.select("div.EPSNumber").text()
+        return newEpisode(url) {
+            name = title
+            episode = Epsnum.getIntFromText()
+            posterUrl = thumbUrl
+        }
+    }
+    
+    
 
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
         val posterUrl = doc.select("img")?.attr("data-src")
         val year = doc.select("div.SingleDetails a").last()?.text()?.getIntFromText()
         val title = doc.select("h2.postTitle").text()
-            .replace("اون لاين", "")
-            .replace("مشاهدة و تحميل", "")
-            .replace("4K", "")
-            .replace("${year.toString()}", "")
-            .replace("فيلم", "")
-            .replace("مترجم", "")
-            .replace("مشاهدة", "")
-            .replace("بجودة", "")
-            .replace("3D", "")
-            .replace("وتحميل", "")
-        val isMovie = doc.select("h2.postTitle").text().contains("فيلم".toRegex())
+        val isMovie = title.contains("فيلم")
         val synopsis = doc.select("section.story").text()
-        val trailer = doc.select("div.InnerTrailer iframe").attr("src")
-        val tags = doc.select("div.SingleDetails").select("li")?.map { it.text() }
+        val trailer = doc.select("div.InnerTrailer iframe").attr("data-src")
+        val tags = doc.select("div.SingleDetails li").map{ it.text() }
 
 
-        return newMovieLoadResponse(
+        return if (isMovie) {
+        newMovieLoadResponse(
                 title,
                 url,
                 TvType.Movie,
@@ -120,8 +109,22 @@ class Movizland : MainAPI() {
                 this.plot = synopsis
                 addTrailer(trailer)
             }
-    }
+    }else{
+                val episodes = doc.select("div.BlockItem").map {
+                it.toEpisode()
+            }
+                
+            newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+                this.posterUrl = posterUrl
+                this.year = year
+                this.tags = tags
+                this.plot = synopsis
+                addTrailer(trailer)
+               }
+            }
+        }
 
+          
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -129,14 +132,10 @@ class Movizland : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val doc = app.get(data).document
-//        doc.select(
-//            "li:contains(dood), li:contains(streamlare), li:contains(streamtape), li:contains(uqload), li:contains(upstream)"
-//        ).map {
-//            val dataServer = it.attr("data-server")
-//            val url = it.select("code#EmbedSc$dataServer iframe").attr("data-srcout")
-//            println(url)
-//            loadExtractor(url, data, subtitleCallback, callback)
-//        }
+        doc.select("code[id*='Embed']").apmap {
+                            var sourceUrl = it.select("iframe").attr("data-srcout")
+                            loadExtractor(sourceUrl, data, subtitleCallback, callback)
+            }
         doc.select("table tbody tr").map {
                     callback.invoke(
                         ExtractorLink(
@@ -144,7 +143,7 @@ class Movizland : MainAPI() {
                             this.name,
                             it.select("a").attr("href"),
                             this.mainUrl,
-                            quality = getQualityFromName(it.select("td:nth-child(2)").text().replace("Original","1080"))
+                            quality = it.select("td:nth-child(2)").text().getIntFromText() ?: Qualities.Unknown.value,
                         )
                     )
             }
