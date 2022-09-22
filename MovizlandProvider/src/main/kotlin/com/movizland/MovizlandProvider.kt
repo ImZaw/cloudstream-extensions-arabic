@@ -16,7 +16,7 @@ class Movizland : MainAPI() {
     override val usesWebView = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.Anime, TvType.Cartoon)
-
+    
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
     }
@@ -24,7 +24,8 @@ class Movizland : MainAPI() {
     private fun Element.toSearchResponse(): SearchResponse? {
         val url = select("div.BlockItem")
         val title = select("div.BlockTitle").text()
-        val posterUrl = if (title.contains("فيلم")) {select("div.BlockImageItem img")?.attr("src")} else {select("div.BlockImageItem > img:nth-child(3)")?.attr("src")} 
+        .replace("مشاهدة","").replace("وتحميل","").replace("فيلم","").replace("مسلسل","").replace("مترجم||مترجمة","").replace("انمي","").replace("عرض","")
+        val posterUrl = select("div.BlockImageItem img")?.attr("src")
         val year = select("ul.InfoEndBlock li").last()?.text()?.getIntFromText()
         var quality = select("ul.RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")
             ?.replace("WEB DL","WEBDL")?.replace("BluRay","BLURAY")
@@ -37,12 +38,11 @@ class Movizland : MainAPI() {
             year,
             null,
             quality = getQualityFromString(quality),
-            // rating = url.select("div.StarsIMDB").text()?.getIntFromText()?.toDouble()
         )
     }
     override val mainPage = mainPageOf(
         "$mainUrl/category/movies/page/" to "Movies",
-        "$mainUrl/series/page/" to "Series",
+        "$mainUrl/category/series/page/" to "Series",
     )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
@@ -57,12 +57,10 @@ class Movizland : MainAPI() {
         val q = query.replace(" ", "%20")
         val result = arrayListOf<SearchResponse>()
         listOf(
-            "$mainUrl/category/movies/?s=$q",
-            "$mainUrl/series/?searching=$q"
+            "$mainUrl/?s=$q",
         ).apmap { url ->
             val d = app.get(url).document
             d.select("div.BlockItem").mapNotNull {
-                //if (!it.text().contains("فيلم||موسم")) return@mapNotNull null
                 it.toSearchResponse()?.let { it1 -> result.add(it1) }
             }
         }
@@ -71,15 +69,27 @@ class Movizland : MainAPI() {
     
     
     private fun Element.toEpisode(): Episode {
-        val a = select("div.BlockItem")
-        val url = a.select("a")?.attr("href")
-        val title = a.select("div.BlockTitle").text()
-        val thumbUrl = a.select("div.BlockImageItem img")?.attr("src")
-        val Epsnum = a.select("div.EPSNumber").text()
+        var EpiIt = select("div.EpisodeItem").isNotEmpty()
+        var EpiSt = if (EpiIt) true else false
+        if(EpiSt){
+            val a = select("div.EpisodeItem")
+            val url = a.select("a")?.attr("href")
+            val title = select("h2 > span > a").text()
+            val Epsnum = a.select("a > em").text().getIntFromText()
         return newEpisode(url) {
             name = title
-            episode = Epsnum.getIntFromText()
-            posterUrl = thumbUrl
+            episode = Epsnum
+            //posterUrl = thumbUrl
+            }
+        }else{
+            val a = select("div.BlockItem")
+            val url = a.select("a")?.attr("href")
+            val title = a.select("div.BlockTitle").text()
+            val Epsnum = a.select("div.EPSNumber").text().getIntFromText()
+         return newEpisode(url) {
+            name = title
+            episode = Epsnum
+            }
         }
     }
     
@@ -87,15 +97,40 @@ class Movizland : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
-        val posterUrl = doc.select("img")?.attr("data-src")
-        val year = doc.select("div.SingleDetails a").last()?.text()?.getIntFromText()
-        val title = doc.select("h2.postTitle").text()
-        val isMovie = title.contains("فيلم")
+        val sdetails = doc.select(".SingleDetails")
+        val isMovie = if(doc.select("h2.postTitle").text().contains("عرض|فيلم".toRegex())) true else false
+        val title = if(isMovie){doc.select("h2.postTitle").text()}else{doc.select("div > h2 > span > a").text()}
+        .replace("مشاهدة","").replace("وتحميل","").replace("فيلم","").replace("مسلسل","").replace("مترجم||مترجمة","").replace("انمي","").replace("عرض","")
+        val posterUrl = sdetails.select("img")?.attr("data-src")
+        val year = sdetails.select("li:has(.fa-clock) a").text()?.getIntFromText()
         val synopsis = doc.select("section.story").text()
         val trailer = doc.select("div.InnerTrailer iframe").attr("data-src")
-        val tags = doc.select("div.SingleDetails li").map{ it.text() }
+        val tags = sdetails.select("li:has(.fa-film) a").map{ it.text() }
+        
+        val recmovies = doc.select("div.RecentItems .BlockItem").map { element ->
+            MovieSearchResponse(
+                apiName = this@Movizland.name,
+                url = element.select("a").attr("href"),
+                name = element.select(".BlockTitle").text(),
+                posterUrl = element.select(".BlockImageItem img")?.attr("data-src")
+            )
+        }
+        
+        val recseries = doc.select(".BottomBarRecent .ButtonsFilter.WidthAuto li li").map { element ->
+            MovieSearchResponse(
+                apiName = this@Movizland.name,
+                url = element.select("a").attr("href"),
+                name = element.text(),
+                posterUrl = doc.select(".SingleDetails img")?.attr("data-src")
+            )
+        }
 
+        
+        val recommendations = if(isMovie){ recmovies }else{ recseries }
 
+        
+        
+        
         return if (isMovie) {
         newMovieLoadResponse(
                 title,
@@ -107,18 +142,20 @@ class Movizland : MainAPI() {
                 this.year = year
                 this.tags = tags
                 this.plot = synopsis
+                this.recommendations = recommendations
                 addTrailer(trailer)
             }
-    }else{
-                val episodes = doc.select("div.BlockItem").map {
-                it.toEpisode()
-            }
-                
+    }else{      
+                var EpIt = doc.select("div.EpisodeItem").isNotEmpty()
+                var EpSt = if (EpIt) true else false
+                var episodes = if(EpSt) { doc.select("div.EpisodeItem").map { it.toEpisode()} } else { doc.select("div.BlockItem").map { it.toEpisode() } }
+             
             newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
                 this.posterUrl = posterUrl
                 this.year = year
                 this.tags = tags
                 this.plot = synopsis
+                this.recommendations = recommendations
                 addTrailer(trailer)
                }
             }
