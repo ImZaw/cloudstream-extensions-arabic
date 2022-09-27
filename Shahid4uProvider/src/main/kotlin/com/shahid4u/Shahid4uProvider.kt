@@ -161,7 +161,7 @@ class Shahid4u : MainAPI() {
     ): Boolean {
         val watchUrl = "$data/watch"
         app.get(watchUrl).document.select(
-            ".servers-list li:contains(ok), li:contains(Streamtape), li:contains(DoodStream), li:contains(Uqload), li:contains(Voe), li:contains(VIDBOM), li:contains(Upstream)"
+            ".servers-list li:contains(ok), li:contains(Streamtape), li:contains(DoodStream), li:contains(Uqload), li:contains(Voe), li:contains(VIDBOM), li:contains(Upstream), li:contains(السيرفر الخاص), li:contains(GoStream), li:contains(الخاص 1080p), li:contains(vidbom), li:contains(Vidbom)"
         ).apmap {
             val id = it.attr("data-id")
             val i = it.attr("data-i")
