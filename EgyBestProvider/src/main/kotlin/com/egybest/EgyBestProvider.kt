@@ -4,6 +4,7 @@ package com.egybest
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.Qualities
@@ -207,72 +208,17 @@ class EgyBest : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        /*val baseURL = data.split("/")[0] + "//" + data.split("/")[2]
-
-        val session = Requests()
-        val episodeSoup = session.get(data).document
-
-        val vidstreamURL = fixUrlNull(episodeSoup.selectFirst("iframe.auto-size")?.attr("src") ) ?: throw ErrorLoadingException("No iframe")
-
-        val videoSoup = app.get(vidstreamURL).document
-        fixUrlNull( videoSoup.select("source").firstOrNull { it.hasAttr("src") }?.attr("src"))?.let {
-            app.get(it).text.replace("#EXTM3U\n","").ExtractLinks()
-        } ?: run {
-            var jsCode = videoSoup.select("script")[1].data()
-            println(jsCode)
-            val verificationToken = Regex("\\{'[0-9a-zA-Z_]*':'ok'\\}").findAll(jsCode).first().value.replace("\\{'|':.*".toRegex(), "")
-            val encodedAdLinkVar = Regex("\\([0-9a-zA-Z_]{2,12}\\[Math").findAll(jsCode).first().value.replace("\\(|\\[M.*".toRegex(),"")
-            val encodingArraysRegEx = Regex(",[0-9a-zA-Z_]{2,12}=\\[\\]").findAll(jsCode).toList()
-
-            val firstEncodingArray = encodingArraysRegEx[1].value.replace(",|=.*".toRegex(),"")
-            val secondEncodingArray = encodingArraysRegEx[2].value.replace(",|=.*".toRegex(),"")
-
-            jsCode = jsCode.replace("^<script type=\"text/javascript\">".toRegex(),"")
-            jsCode = jsCode.replace("[;,]\\\$\\('\\*'\\)(.*)\$".toRegex(),";")
-            jsCode = jsCode.replace(",ismob=(.*)\\(navigator\\[(.*)\\]\\)[,;]".toRegex(),";")
-            jsCode = jsCode.replace("var a0b=function\\(\\)(.*)a0a\\(\\);".toRegex(),"")
-            jsCode += "var link = ''; for (var i = 0; i <= $secondEncodingArray['length']; i++) { link += $firstEncodingArray[$secondEncodingArray[i]] || ''; } return [link, $encodedAdLinkVar[0]] }"
-
-            // till here everything should be fine
-            val jsCodeReturn = js(jsCode)()
-            val verificationPath = jsCodeReturn[0]
-            val encodedAdPath = jsCodeReturn[1]
-
-            val adLink = baseURL + "/" + str(decode(encodedAdPath + "=" * (-len(encodedAdPath) % 4)), "utf-8")
-            val session.get(adLink)
-
-            val verificationLink = baseURL + "/tvc.php?verify=" + verificationPath
-            val session.post(verificationLink, data={verificationToken: "ok"})
-
-            val vidstreamResponseText = session.get(vidstreamURL).text
-            val videoSoup = BeautifulSoup(vidstreamResponseText, features="html.parser")
-
-            val qualityLinksFileURL = baseURL + videoSoup.body.find("source").get("src")
-        }
-
-
-        return true*/
-
-        val requestJSON = app.get("https://egybest-sgu8utcomnfb.runkit.sh/egybest?url=$data").text
-        // To solve this you need to send a verify request which is pretty hidden, see
-        // https://vear.egybest.deals/tvc.php?verify=.......
-        val jsonArray = parseJson<List<Sources>>(requestJSON)
-        for (i in jsonArray) {
-            val quality = i.quality
-            val link = i.link
-            callback.invoke(
-                ExtractorLink(
-                    this.name,
-                    this.name,
-                    link,
-                    this.mainUrl,
-                    quality!!,
-                    link.replace(".*\\.".toRegex(),"") == "m3u8",
-                    // Does not work without these headers!
-                    headers = mapOf("range" to "bytes=0-"),
-                )
-            )
-        }
+        val iframeUrl = fixUrlNull(app.get(data).document.selectFirst("iframe.auto-size")?.attr("src")) ?: "Iframe Url Not Found"
+        val iframePage = app.get(iframeUrl, cookies = mapOf(
+            "PSSID" to "pyP7HDoQ3MVaqj997jimKDzjYT151aYWRwtX80iJTqtPLjPlUCY5YEo%2CtIytPMNCuq82H3EoQ75X3VeP1ciBJk%2CwVG50Qhy2raZLQ2VYsqWNH-RrWb0oZMKYIlQzBnc6",
+        )).document
+        val streamUrl = mainUrl + iframePage.select("source").attr("src")
+        M3u8Helper.generateM3u8(
+            this.name,
+            streamUrl,
+            referer = mainUrl,
+            headers = mapOf("range" to "bytes=0-")
+        ).forEach(callback)
         return true
     }
 }
