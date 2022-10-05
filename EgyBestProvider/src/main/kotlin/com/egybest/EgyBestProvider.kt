@@ -210,7 +210,7 @@ class EgyBest : MainAPI() {
     ): Boolean {
         val iframeUrl = fixUrlNull(app.get(data).document.selectFirst("iframe.auto-size")?.attr("src")) ?: "Iframe Url Not Found"
         val iframePage = app.get(iframeUrl, cookies = mapOf(
-            "PSSID" to "pyP7HDoQ3MVaqj997jimKDzjYT151aYWRwtX80iJTqtPLjPlUCY5YEo%2CtIytPMNCuq82H3EoQ75X3VeP1ciBJk%2CwVG50Qhy2raZLQ2VYsqWNH-RrWb0oZMKYIlQzBnc6",
+            "PSSID" to app.get("https://helper.zr5.repl.co/pssid").text,
         )).document
         val streamUrl = mainUrl + iframePage.select("source").attr("src")
         M3u8Helper.generateM3u8(
