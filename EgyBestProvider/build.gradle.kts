@@ -1,7 +1,7 @@
-version = 5
+version = 6
 
 cloudstream {
-    description = ""
+    description = "If links do not load, try again"
     authors = listOf( "ImZaw" )
 
 	language = "ar"

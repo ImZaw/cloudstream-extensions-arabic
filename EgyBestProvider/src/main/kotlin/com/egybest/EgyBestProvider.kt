@@ -3,14 +3,13 @@ package com.egybest
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
-import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
-import com.lagradost.cloudstream3.utils.AppUtils.parseJson
-import com.lagradost.cloudstream3.utils.Qualities
-import org.jsoup.nodes.Element
 import com.lagradost.nicehttp.Requests
-import com.lagradost.cloudstream3.newHomePageResponse as newHomePageResponse
+import com.lagradost.nicehttp.Session
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.jsoup.nodes.Element
 
 class EgyBest : MainAPI() {
     override var lang = "ar"
@@ -202,23 +201,49 @@ class EgyBest : MainAPI() {
         }
         return true
     }
-    override suspend fun loadLinks(
+override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val iframeUrl = fixUrlNull(app.get(data).document.selectFirst("iframe.auto-size")?.attr("src")) ?: "Iframe Url Not Found"
-        val iframePage = app.get(iframeUrl, cookies = mapOf(
-            "PSSID" to app.get("https://helper.zr5.repl.co/pssid").text,
+        val baseURL = data.split("/")[0] + "//" + data.split("/")[2]
+        val client = Requests().baseClient
+        val session = Session(client)
+        val doc = session.get(data).document
+
+        val vidstreamURL = baseURL + doc.select("iframe.auto-size").attr("src")
+
+        val videoSoup = session.get(vidstreamURL, cookies = mapOf(
+            "PSSID" to this@EgyBest.pssid,
         )).document
-        val streamUrl = mainUrl + iframePage.select("source").attr("src")
-        M3u8Helper.generateM3u8(
-            this.name,
-            streamUrl,
-            referer = mainUrl,
-            headers = mapOf("range" to "bytes=0-")
-        ).forEach(callback)
+        videoSoup.select("source").firstOrNull { it.hasAttr("src") }?.attr("src")?.let {
+            M3u8Helper.generateM3u8(
+                this.name,
+                it,
+                referer = mainUrl,
+                headers = mapOf("range" to "bytes=0-")
+            ).forEach(callback)
+        } ?: run {
+            val jsCode = videoSoup.select("script")[1].html()
+            val javascriptResult =
+                session.post("https://helper.zr5.repl.co", data = mapOf("data" to jsCode, "baseUrl" to baseURL)).text.split(",")
+            val adLink = javascriptResult[0]
+            val verificationLink = javascriptResult[1]
+            val verificationToken = javascriptResult[2]
+            session.get(adLink)
+            session.post(verificationLink, data=mapOf(verificationToken to "ok"))
+
+            val vidstreamResponse = session.get(vidstreamURL).document
+            val mediaLink = baseURL + vidstreamResponse.select("source").attr("src")
+            this@EgyBest.pssid = session.baseClient.cookieJar.loadForRequest(data.toHttpUrl())[0].toString().split(";")[0].split("=")[1]
+            M3u8Helper.generateM3u8(
+                this.name,
+                mediaLink,
+                referer = mainUrl,
+                headers = mapOf("range" to "bytes=0-")
+            ).forEach(callback)
+        }
         return true
     }
 }
