@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
+import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.nicehttp.Requests
 import com.lagradost.nicehttp.Session
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -15,6 +16,7 @@ class EgyBest : MainAPI() {
     override var lang = "ar"
     override var mainUrl = "https://www.egy.best"
     override var name = "EgyBest"
+	var pssid = ""
     override val usesWebView = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.Anime)
