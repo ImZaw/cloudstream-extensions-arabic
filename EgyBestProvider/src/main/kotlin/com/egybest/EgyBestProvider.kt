@@ -1,16 +1,19 @@
 package com.egybest
 
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import android.annotation.TargetApi
+import android.os.Build
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
-import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.nicehttp.Requests
 import com.lagradost.nicehttp.Session
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Element
+import java.util.Base64
+import org.mozilla.javascript.Context
+import org.mozilla.javascript.Scriptable
 
 class EgyBest : MainAPI() {
     override var lang = "ar"
@@ -181,29 +184,9 @@ class EgyBest : MainAPI() {
             }
         }
     }
-    data class Sources (
-        @JsonProperty("quality") val quality: Int?,
-        @JsonProperty("link") val link: String
-    )
-
-    private fun String.ExtractLinks(): Boolean? {
-        val list = Regex("#EXT.*\\n.*").findAll(this).toList()
-        println(list)
-        list.map {
-            val url = Regex(".*stream\\.m3u8").find(it.value)?.value.toString()
-            val quality = Regex("[0-9]{3,4}x[0-9]{3,4}").find(it.value)?.value?.replace(".*x".toRegex(),"")?.toInt()
-                ExtractorLink(
-                    this@EgyBest.name,
-                    this@EgyBest.name,
-                    url,
-                    this@EgyBest.mainUrl,
-                    quality ?: Qualities.Unknown.value,
-                    true
-                )
-        }
-        return true
-    }
-override suspend fun loadLinks(
+	
+    @TargetApi(Build.VERSION_CODES.O)
+    override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
         subtitleCallback: (SubtitleFile) -> Unit,
@@ -227,12 +210,28 @@ override suspend fun loadLinks(
                 headers = mapOf("range" to "bytes=0-")
             ).forEach(callback)
         } ?: run {
-            val jsCode = videoSoup.select("script")[1].html()
-            val javascriptResult =
-                session.post("https://helper.zr5.repl.co", data = mapOf("data" to jsCode, "baseUrl" to baseURL)).text.split(",")
-            val adLink = javascriptResult[0]
-            val verificationLink = javascriptResult[1]
-            val verificationToken = javascriptResult[2]
+            var jsCode = videoSoup.select("script")[1].html()
+            val function = videoSoup.select("script")[2].attr("onload")
+            val verificationToken = Regex("\\{'[0-9a-zA-Z_]*':'ok'\\}").findAll(jsCode).first().value.replace("\\{'|':.*".toRegex(), "")
+            val encodedAdLinkVar = Regex("\\([0-9a-zA-Z_]{2,12}\\[Math").findAll(jsCode).first().value.replace("\\(|\\[M.*".toRegex(),"")
+            val encodingArraysRegEx = Regex(",[0-9a-zA-Z_]{2,12}=\\[]").findAll(jsCode).toList()
+            val firstEncodingArray = encodingArraysRegEx[1].value.replace(",|=.*".toRegex(),"")
+            val secondEncodingArray = encodingArraysRegEx[2].value.replace(",|=.*".toRegex(),"")
+            
+            jsCode = jsCode.replace("^<script type=\"text/javascript\">".toRegex(),"")
+            jsCode = jsCode.replace(",\\\$\\('\\*'\\).*".toRegex(),";")
+            jsCode = jsCode.replace(",ismob=.*]\\);".toRegex(),";")
+            jsCode = jsCode.replace("var a0b=\\(function\\(\\)(.*)a0a\\(\\);".toRegex(),"")
+            jsCode = "$jsCode var link = ''; for (var i = 0; i <= $secondEncodingArray['length']; i++) { link += $firstEncodingArray[$secondEncodingArray[i]] || ''; } return [link, $encodedAdLinkVar[0]] };var result = $function"
+
+            val javascriptResult = jsCode.runJS("result").split(",")
+            val verificationPath = javascriptResult[0]
+            val encodedAdPath = javascriptResult[1]
+
+            val encodedString = encodedAdPath + "=".repeat(encodedAdPath.length % 4)
+            val decodedPath = String(Base64.getDecoder().decode(encodedString))
+            val adLink = "$baseURL/$decodedPath"
+            val verificationLink = "$baseURL/tvc.php?verify=$verificationPath"
             session.get(adLink)
             session.post(verificationLink, data=mapOf(verificationToken to "ok"))
 

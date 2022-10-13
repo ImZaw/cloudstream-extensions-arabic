@@ -1,4 +1,4 @@
-version = 6
+version = 7
 
 cloudstream {
     description = "If links do not load, try again"
