@@ -240,7 +240,7 @@ class EgyBest : MainAPI() {
             
             jsCode = jsCode.replace("^<script type=\"text/javascript\">".toRegex(),"")
             jsCode = jsCode.replace(",\\\$\\('\\*'\\).*".toRegex(),";")
-            jsCode = jsCode.replace(",ismob=.*]\\);".toRegex(),";")
+            jsCode = jsCode.replace(",ismob=(.*)\\(navigator\\[(.*)\\]\\)[,;]".toRegex(),";")
             jsCode = jsCode.replace("var a0b=\\(function\\(\\)(.*)a0a\\(\\);".toRegex(),"")
             jsCode = "$jsCode var link = ''; for (var i = 0; i <= $secondEncodingArray['length']; i++) { link += $firstEncodingArray[$secondEncodingArray[i]] || ''; } return [link, $encodedAdLinkVar[0]] };var result = $function"
 
