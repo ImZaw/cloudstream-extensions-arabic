@@ -15,6 +15,26 @@ import java.util.Base64
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.Scriptable
 
+fun String.runJS(variableName: String): String {
+    val rhino = Context.enter()
+    rhino.initSafeStandardObjects()
+    rhino.optimizationLevel = -1
+    val scope: Scriptable = rhino.initSafeStandardObjects()
+    val script = this
+    val result: String
+    try {
+        var js = ""
+        for (i in script.indices) {
+            js += script[i]
+        }
+        rhino.evaluateString(scope, js, "JavaScript", 1, null)
+        result = Context.toString(scope.get(variableName, scope))
+    } finally {
+        Context.exit()
+    }
+    return result
+}
+
 class EgyBest : MainAPI() {
     override var lang = "ar"
     override var mainUrl = "https://www.egy.best"

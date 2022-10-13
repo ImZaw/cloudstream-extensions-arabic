@@ -44,8 +44,8 @@ class GateAnime : MainAPI() {
         }
     }
     override val mainPage = mainPageOf(
-            "$mainUrl/الأفلام/page/" to "Anime Movies",
-            "$mainUrl/المسلسلات/page/" to "Anime",
+            "$mainUrl/movies/page/" to "Anime Movies",
+            "$mainUrl/series/page/" to "Anime",
             "$mainUrl/category/مدبلج/page/" to "Dubbed"
         )
 
