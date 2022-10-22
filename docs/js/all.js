@@ -57,4 +57,4 @@ setTimeout(function(){
             .replace("{{description}}", plugin?.description ?? "")
             )
     })
-}, 400)
+}, 1000)
