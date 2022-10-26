@@ -35,10 +35,10 @@ class Movizland : MainAPI() {
 		this.let{ clean ->
             var aa = clean
 				prefix.forEach{ pre ->
-            	aa = if (aa.startsWith(pre))	aa.replace(pre,"") 	else	aa	}
+            	aa = if (aa.contains(pre))	aa.replace(pre,"") 	else	aa	}
                 var bb = aa
 				suffix.mapNotNull{ suf ->
-            	bb = if (bb.endsWith(suf))	bb.replace(suf,"")	else	bb	}
+            	bb = if (bb.contains(suf))	bb.replace(suf,"")	else	bb	}
         	return bb
         }
     }
