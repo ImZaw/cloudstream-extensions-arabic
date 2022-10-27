@@ -46,7 +46,6 @@ class Shahid4u : MainAPI() {
         val doc = app.get(request.data + page).document
         val list = doc.select("div.content-box")
             .mapNotNull { element ->
-                println(element.select("a.fullClick").attr("title"))
                 element.toSearchResponse()
             }
         return newHomePageResponse(request.name, list)

@@ -215,6 +215,8 @@ class EgyBest : MainAPI() {
         val baseURL = data.split("/")[0] + "//" + data.split("/")[2]
         val client = Requests().baseClient
         val session = Session(client)
+        println(baseURL)
+        println(data)
         val doc = session.get(data).document
 
         val vidstreamURL = baseURL + doc.select("iframe.auto-size").attr("src")
@@ -247,17 +249,21 @@ class EgyBest : MainAPI() {
             val javascriptResult = jsCode.runJS("result").split(",")
             val verificationPath = javascriptResult[0]
             val encodedAdPath = javascriptResult[1]
+            println(javascriptResult)
 
             val encodedString = encodedAdPath + "=".repeat(encodedAdPath.length % 4)
             val decodedPath = String(Base64.getDecoder().decode(encodedString))
+            println("String( $encodedString ) -> Decoded( $decodedPath )")
             val adLink = "$baseURL/$decodedPath"
+            println(adLink)
             val verificationLink = "$baseURL/tvc.php?verify=$verificationPath"
             session.get(adLink)
             session.post(verificationLink, data=mapOf(verificationToken to "ok"))
 
             val vidstreamResponse = session.get(vidstreamURL).document
             val mediaLink = baseURL + vidstreamResponse.select("source").attr("src")
-            this@EgyBest.pssid = session.baseClient.cookieJar.loadForRequest(data.toHttpUrl())[0].toString().split(";")[0].split("=")[1]
+            println("mediaLink: $mediaLink")
+            println("Cookies: ${session.baseClient.cookieJar.loadForRequest(data.toHttpUrl())}")
             M3u8Helper.generateM3u8(
                 this.name,
                 mediaLink,
