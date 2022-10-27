@@ -48,11 +48,11 @@ class FaselHD : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         var doc = app.get(request.data + page).document
-        println(doc.select("title").text())
         if(doc.select("title").text() == "Just a moment...") {
             println("Found Cloudflare.")
             doc = app.get(request.data + page, interceptor = CloudflareKiller()).document
         }
+        println("HTML: "+doc.html())
         val list = doc.select("div[id=\"postList\"] div[class=\"col-xl-2 col-lg-2 col-md-3 col-sm-3\"]")
             .mapNotNull { element ->
                 element.toSearchResponse()
@@ -63,7 +63,6 @@ class FaselHD : MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val q = query.replace(" ","+")
         var d = app.get("$mainUrl/?s=$q").document
-        println(d.select("title").text())
         if(d.select("title").text() == "Just a moment...") {
             println("Found Cloudflare.")
             d = app.get("$mainUrl/?s=$q", interceptor = CloudflareKiller()).document
@@ -77,7 +76,6 @@ class FaselHD : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
-        println(doc.select("title").text())
         if(doc.select("title").text() == "Just a moment...") {
             println("Found Cloudflare.")
             doc = app.get(url, interceptor = CloudflareKiller()).document
@@ -167,8 +165,7 @@ class FaselHD : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         var doc = app.get(data).document
-        println(doc.select("title").text())
-        if(doc.select("title").text() === "Just a moment...") {
+        if(doc.select("title").text() == "Just a moment...") {
             println("Found Cloudflare.")
             doc = app.get(data, interceptor = CloudflareKiller()).document
         }
@@ -199,7 +196,7 @@ class FaselHD : MainAPI() {
                     this.name,
                     webView?.url.toString(),
                     referer = mainUrl
-                ).forEach(callback)
+                ).toList().forEach(callback)
             }
         }
         return true
