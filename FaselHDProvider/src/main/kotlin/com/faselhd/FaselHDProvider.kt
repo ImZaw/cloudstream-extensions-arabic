@@ -47,7 +47,8 @@ class FaselHD : MainAPI() {
         )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        val doc = app.get(request.data + page).document
+        var doc = app.get(request.data + page).document
+        if(doc.select("title").text() === "Just a moment...") doc = app.get(request.data + page, interceptor = CloudflareKiller()).document
         val list = doc.select("div[id=\"postList\"] div[class=\"col-xl-2 col-lg-2 col-md-3 col-sm-3\"]")
             .mapNotNull { element ->
                 element.toSearchResponse()
@@ -57,7 +58,8 @@ class FaselHD : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val q = query.replace(" ","+")
-        val d = app.get("$mainUrl/?s=$q").document
+        var d = app.get("$mainUrl/?s=$q").document
+        if(d.select("title").text() === "Just a moment...") d = app.get("$mainUrl/?s=$q", interceptor = CloudflareKiller()).document
         return d.select("div[id=\"postList\"] div[class=\"col-xl-2 col-lg-2 col-md-3 col-sm-3\"]")
             .mapNotNull {
                 it.toSearchResponse()
@@ -66,7 +68,8 @@ class FaselHD : MainAPI() {
 
 
     override suspend fun load(url: String): LoadResponse {
-        val doc = app.get(url).document
+        var doc = app.get(url).document
+        if(doc.select("title").text() === "Just a moment...") doc = app.get(url, interceptor = CloudflareKiller()).document
         val isMovie = doc.select("div.epAll").isEmpty()
         val posterUrl = doc.select("div.posterImg img").attr("src")
             .ifEmpty { doc.select("div.seasonDiv.active img").attr("data-src") }
@@ -147,14 +150,14 @@ class FaselHD : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val doc = app.get(data).document
+        var doc = app.get(data).document
+        if(doc.select("title").text() === "Just a moment...") doc = app.get(data, interceptor = CloudflareKiller()).document
         listOf(
             doc.select(".downloadLinks a").attr("href") to "download",
             doc.select("iframe[name=\"player_iframe\"]").attr("src") to "iframe"
         ).apmap { (url, method) ->
             if(method == "download") {
                 val player = app.post(url, interceptor = CloudflareKiller(), referer = mainUrl).document
-                
                 callback.invoke(
                     ExtractorLink(
                         this.name,

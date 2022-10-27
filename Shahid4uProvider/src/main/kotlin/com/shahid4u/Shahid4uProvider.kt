@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element
 
 class Shahid4u : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://shahid4u.cc"
+    override var mainUrl = "https://shahed4u.network"
     override var name = "Shahid4u"
     override val usesWebView = false
     override val hasMainPage = true
@@ -38,7 +38,7 @@ class Shahid4u : MainAPI() {
         )
     }
     override val mainPage = mainPageOf(
-            "$mainUrl/movies-2/page/" to "Movies",
+            "$mainUrl/movies-3/page/" to "Movies",
             "$mainUrl/netflix/page/" to "Series & Anime",
         )
 
@@ -46,6 +46,7 @@ class Shahid4u : MainAPI() {
         val doc = app.get(request.data + page).document
         val list = doc.select("div.content-box")
             .mapNotNull { element ->
+                println(element.select("a.fullClick").attr("title"))
                 element.toSearchResponse()
             }
         return newHomePageResponse(request.name, list)
