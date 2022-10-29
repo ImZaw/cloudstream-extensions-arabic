@@ -15,7 +15,7 @@ class Movizland : MainAPI() {
     override var name = "Movizland"
     override val usesWebView = false
     override val hasMainPage = true
-    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.Anime, TvType.Cartoon)
+    override val supportedTypes = setOf(TvType.TvSeries, TvType.Movie, TvType.AsianDrama, TvType.Anime)
 
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
@@ -90,21 +90,6 @@ class Movizland : MainAPI() {
         }
         return result.distinct().sortedBy { it.name }
     }
-    
-    /*
-    private fun Element.toEpisode(): Episode {
-        val a = select("div.EpisodeItem")
-        val url = a.select("a")?.attr("href")
-        val title = a.text()
-        //val thumbUrl = a.select("div.BlockImageItem img")?.attr("src")
-        val Epsnum = a.select("em").text()
-        return newEpisode(url) {
-            name = title
-            episode = Epsnum.getIntFromText()
-            //posterUrl = thumbUrl
-        }
-    }*/
-    
     
     private fun getSeasonFromString(tit: String): Int {   
             if(tit.contains("الموسم الاول".toRegex())){ return 1 }
@@ -249,6 +234,28 @@ class Movizland : MainAPI() {
                             var sourceUrl = it.attr("data-srcout")
                             loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
+	val regcode = """moshahda.net/embed-(\w+)""".toRegex()
+	val moshembed = doc.select("#EmbedScmain iframe").attr("data-srcout")
+	val code = regcode.find(moshembed)?.groupValues?.getOrNull(1)
+	val moshlink = "https://moshahda.net/embed-$code.html?"
+	val moshpage = app.get(moshlink).document
+	val moshpagehtml = moshpage.select("html > body > script").html()
+        val watchlink = moshpagehtml.substringAfter("""fileType: "m3u8", file: """").substringBefore('\"')
+
+	    if(watchlink!=null) {
+                    callback.invoke(
+                        ExtractorLink(
+                            "Moshahda",
+                            "Moshahda",
+                            url = watchlink,
+                            this.mainUrl,
+                            quality = Qualities.Unknown.value,
+                            isM3u8 = true,
+                        )
+                    )
+		    return true
+            }
+        else { return false }
 	return true
     }
 }
