@@ -118,7 +118,7 @@ class EgyBest : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val doc = app.get(url).document
+        val doc = app.get(mainUrl + url).document
         val isMovie = Regex(".*/movie/.*|.*/masrahiya/.*").matches(url)
         val posterUrl = doc.select("div.movie_img a img")?.attr("src")
         val year = doc.select("div.movie_title h1 a")?.text()?.toIntOrNull()

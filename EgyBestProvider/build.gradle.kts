@@ -1,7 +1,7 @@
 version = 7
 
 cloudstream {
-    description = "If links do not load, try again"
+    description = "Egybest is broken"
     authors = listOf( "ImZaw" )
 
 	language = "ar"
