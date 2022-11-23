@@ -37,7 +37,7 @@ fun String.runJS(variableName: String): String {
 
 class EgyBest : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://www.egy.best"
+    override var mainUrl = "https://egybest.org"
     override var name = "EgyBest"
 	var pssid = ""
     override val usesWebView = false
@@ -60,7 +60,7 @@ class EgyBest : MainAPI() {
         // If you need to differentiate use the url.
         return MovieSearchResponse(
             title,
-            url,
+            mainUrl + url,
             this@EgyBest.name,
             tvType,
             posterUrl,
@@ -102,9 +102,8 @@ class EgyBest : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val q = query.replace(" ","%20")
         val result = arrayListOf<SearchResponse>()
-        listOf("$mainUrl/explore/?q=$q").apmap { url ->
+        listOf("$mainUrl/explore/?q=$query").apmap { url ->
             val d = app.get(url).document
             d.select("div.movies a").not("a.auto.load.btn.b").mapNotNull {
                 it.toSearchResponse()?.let { it1 -> result.add(it1) }
@@ -118,7 +117,7 @@ class EgyBest : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val doc = app.get(mainUrl + url).document
+        val doc = app.get(url).document
         val isMovie = Regex(".*/movie/.*|.*/masrahiya/.*").matches(url)
         val posterUrl = doc.select("div.movie_img a img")?.attr("src")
         val year = doc.select("div.movie_title h1 a")?.text()?.toIntOrNull()
@@ -172,7 +171,7 @@ class EgyBest : MainAPI() {
                         val ep = Regex("ep-(.....)").find(element.select(".ep_title a").attr("href"))?.groupValues?.getOrNull(1)?.getIntFromText()
                         episodes.add(
                             Episode(
-                                element.select(".ep_title a").attr("href"),
+                                mainUrl + element.select(".ep_title a").attr("href"),
                                 name = element.select("td.ep_title").html().replace(".*</span>|</a>".toRegex(), ""),
                                 season,
                                 ep,
@@ -185,7 +184,7 @@ class EgyBest : MainAPI() {
                         val ep = Regex("ep-(.....)").find(eit.attr("href"))?.groupValues?.getOrNull(1)?.getIntFromText()
                         episodes.add(
                             Episode(
-                                eit.attr("href"),
+                                mainUrl + eit.attr("href"),
                                 eit.select("span.title").text(),
                                 season,
                                 ep,

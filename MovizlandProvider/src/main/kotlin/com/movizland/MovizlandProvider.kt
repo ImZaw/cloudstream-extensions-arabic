@@ -46,7 +46,9 @@ class Movizland : MainAPI() {
     private fun Element.toSearchResponse(): SearchResponse? {
         val url = select(".BlockItem")
         val title = url.select(".BlockTitle").text().cleanTitle()
-        val posterUrl = if (url.select(".BlockTitle").text().contains("فيلم")) {select(".BlockImageItem img")?.attr("src")} else {select(".BlockImageItem > img:nth-child(3)")?.attr("src")} 
+        val posterUrl = select(".BlockImageItem img")?.attr("src")?.ifEmpty {
+            select(".BlockImageItem img")[1].attr("src")
+        }
         val year = select(".InfoEndBlock li").last()?.text()?.getIntFromText()
         var quality = select(".RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")
             ?.replace("WEB DL","WEBDL")?.replace("BluRay","BLURAY")
@@ -76,19 +78,11 @@ class Movizland : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val q = query.replace(" ".toRegex(), "%20")
-        val result = arrayListOf<SearchResponse>()
-        listOf(
-            "$mainUrl/category/movies/?s=$q",
-            "$mainUrl/series/?searching=$q"
-        ).apmap { url ->
-            val d = app.get(url).document
-            d.select("div.BlockItem").mapNotNull {
-                //if (!it.text().contains("فيلم||موسم")) return@mapNotNull null
-                it.toSearchResponse()?.let { it1 -> result.add(it1) }
-            }
+        val d = app.get("$mainUrl/?s=$query").document
+        return d.select("div.BlockItem").mapNotNull {
+            if(it.select(".BlockTitle").text().contains("الحلقة")) return@mapNotNull null;
+            it.toSearchResponse()
         }
-        return result.distinct().sortedBy { it.name }
     }
     
     private fun getSeasonFromString(tit: String): Int {   
@@ -119,10 +113,12 @@ class Movizland : MainAPI() {
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
         val sdetails = doc.select(".SingleDetails")
-        val posterUrl = sdetails.select("img")?.attr("data-src")
+        val posterUrl = sdetails.select(".Poster img").attr("data-src").ifEmpty {
+            sdetails.select(".BlockItem").last()?.select(".Poster img")?.attr("src")
+        }
         val year = sdetails.select("li:has(.fa-clock) a").text()?.getIntFromText()
         val title = doc.select("h2.postTitle").text().cleanTitle()
-        val isMovie = if(doc.select("h2.postTitle").text().contains("عرض|فيلم".toRegex())) true else false
+        val isMovie = doc.select("h2.postTitle").text().contains("عرض|فيلم".toRegex())
         val synopsis = doc.select("section.story").text()
         val trailer = doc.select("div.InnerTrailer iframe").attr("data-src")
         val tags = sdetails.select("li:has(.fa-film) a").map{ it.text() }
@@ -147,14 +143,12 @@ class Movizland : MainAPI() {
             val refererUrl = doc.select("body > header > div > div.Logo > a").attr("href")
             if(doc.select(".BlockItem a").attr("href").contains("/series/")){//seasons
                 doc.select(".BlockItem").map { seas ->
-                    seas.select("a").attr("href") }.apmap{
-                    val Sedoc = app.get(it).document
-                    val pagEl = Sedoc.select(".pagination > div > ul > li.active > a").isNotEmpty()
-                    val pagSt = if(pagEl) true else false
-                        if(pagSt){
-                            Sedoc.select(".pagination > div > ul > li:nth-child(n):not(:last-child) a").map{ eppages ->
-                                eppages.attr("href") }.apmap{
-                                val epidoc = app.get(it).document
+                    seas.select("a").attr("href") }.apmap{ pageIt ->
+                    val Sedoc = app.get(pageIt).document
+                    val pagEl = Sedoc.select(".pagination > div > ul > li").isNotEmpty()
+                    if(pagEl) {
+                            Sedoc.select(".pagination > div > ul > li:nth-child(n):not(:last-child) a").apmap {
+                                val epidoc = app.get(it.attr("href")).document
                                     epidoc.select("div.BlockItem").map{ element ->
                                     episodes.add(
                                         Episode(

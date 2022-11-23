@@ -1,7 +1,7 @@
-version = 1
+version = 2
 
 cloudstream {
-    description = ""
+    description = "Not recommended for series."
     authors = listOf( "Spoonge" )
 	
 	language = "ar"

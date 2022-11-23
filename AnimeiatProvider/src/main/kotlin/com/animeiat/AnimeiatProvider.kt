@@ -116,7 +116,7 @@ class Animeiat : MainAPI() {
     )
     override suspend fun load(url: String): LoadResponse {
         val loadSession = Requests()
-        val request = loadSession.get(url).text
+        val request = loadSession.get(url.replace(pageUrl, mainUrl)).text
         val json = parseJson<Load>(request)
         val episodes = arrayListOf<Episode>()
         (1..parseJson<Episodes>(loadSession.get("$url/episodes").text).meta.lastPage!!).map { pageNumber ->
@@ -134,7 +134,7 @@ class Animeiat : MainAPI() {
             }
         }
         return newAnimeLoadResponse(json.data?.animeName.toString(), "$pageUrl/watch/"+json.data?.slug, if(json.data?.type == "movie") TvType.AnimeMovie else if(json.data?.type == "tv") TvType.Anime else TvType.OVA) {
-            japName = json.data?.otherNames?.split("\n")?.get(1)
+            japName = json.data?.otherNames?.replace("\\n.*".toRegex(), "")
             engName = json.data?.animeName
             posterUrl = "https://api.animeiat.co/storage/" + json.data?.posterPath
             this.year = json.data?.year?.name?.toIntOrNull()
