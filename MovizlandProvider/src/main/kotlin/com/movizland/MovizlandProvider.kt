@@ -215,8 +215,8 @@ override suspend fun loadLinks(
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val doc = app.get(data).document
-	doc.select("code[id*='Embed'] iframe").apmap {
-                            var sourceUrl = it.attr("data-srcout")
+	doc.select("code[id*='Embed'] iframe,.DownloadsList a").apmap {
+                            var sourceUrl = it.attr("data-srcout").ifEmpty { it.attr("href") }
                             loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
 	return true
