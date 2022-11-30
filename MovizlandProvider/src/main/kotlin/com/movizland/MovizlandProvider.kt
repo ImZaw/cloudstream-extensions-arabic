@@ -1,6 +1,5 @@
 package com.movizland
 
-
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -39,7 +38,7 @@ class Movizland : MainAPI() {
         val url = select(".BlockItem")
         val title = url.select(".BlockTitle").text().cleanTitle()
 	val img = url.select("img:last-of-type")
-	val posterUrl = img?.attr("src")?.ifEmpty { else img?.attr("data-src") }
+	val posterUrl = img?.attr("src")?.ifEmpty { img?.attr("data-src") }
         val year = select(".InfoEndBlock li").last()?.text()?.getIntFromText()
         var quality = select(".RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")
             ?.replace("WEB DL","WEBDL")?.replace("BluRay","BLURAY")
@@ -208,16 +207,16 @@ class Movizland : MainAPI() {
             }
         }
           
-override suspend fun loadLinks(
-        data: String,
-        isCasting: Boolean,
-        subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (ExtractorLink) -> Unit
-    ): Boolean {
-        val doc = app.get(data).document
-	doc.select("code[id*='Embed'] iframe,.DownloadsList a").apmap {
-                            var sourceUrl = it.attr("data-srcout").ifEmpty { it.attr("href") }
-                            loadExtractor(sourceUrl, data, subtitleCallback, callback)
+	override suspend fun loadLinks(
+        	data: String,
+       		 isCasting: Boolean,
+        	subtitleCallback: (SubtitleFile) -> Unit,
+        	callback: (ExtractorLink) -> Unit
+    	): Boolean {
+        	val doc = app.get(data).document
+		doc.select("code[id*='Embed'] iframe,.DownloadsList a").apmap {
+                	var sourceUrl = it.attr("data-srcout").ifEmpty { it.attr("href") }
+                        loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
 	return true
     }
