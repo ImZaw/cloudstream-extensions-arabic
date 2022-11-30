@@ -215,7 +215,7 @@ class Movizland : MainAPI() {
     	): Boolean {
         	val doc = app.get(data).document
 		doc.select("code[id*='Embed'] iframe").apmap {
-                	var sourceUrl = it.attr("data-srcout").ifEmpty { it.attr("href") }
+                	var sourceUrl = it.attr("data-srcout")
                         loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
 	return true
