@@ -139,7 +139,7 @@ open class Anime4up : MainAPI() {
                 }
             }
             val moshahdaID =  doc.select("input[name=\"moshahda\"]").attr("value").decodeBase64()?.utf8()
-            if(moshahdaID.isNotEmpty()) {
+            if(moshahdaID?.isNotEmpty()) {
                 mapOf(
                     "Original" to "download_o",
                     "720" to "download_x",
