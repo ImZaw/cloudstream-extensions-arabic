@@ -138,8 +138,8 @@ open class Anime4up : MainAPI() {
                     loadExtractor(it.value, data, subtitleCallback, callback)
                 }
             }
-            val moshahdaID =  doc.select("input[name=\"moshahda\"]").attr("value").decodeBase64()?.utf8()
-            if(moshahdaID?.isNotEmpty()) {
+            val moshahdaID =  doc.select("input[name=\"moshahda\"]").attr("value").decodeBase64()?.utf8()  ?: ""
+            if(moshahdaID.isNotEmpty()) {
                 mapOf(
                     "Original" to "download_o",
                     "720" to "download_x",
