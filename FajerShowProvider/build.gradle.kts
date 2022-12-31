@@ -4,11 +4,11 @@ cloudstream {
     description = ""
     authors = listOf( "ImZaw" )
 
-	language = "ar"
+    language = "ar"
 	
     status = 1
 
     tvTypes = listOf( "TvSeries" , "Movie" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=fajer.show&sz=%size%"
+    iconUrl = "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fajer.show&size=%size%"
 }
