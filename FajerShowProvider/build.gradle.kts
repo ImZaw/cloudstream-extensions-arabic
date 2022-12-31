@@ -10,5 +10,5 @@ cloudstream {
 
     tvTypes = listOf( "TvSeries" , "Movie" )
 
-    iconUrl = "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fajer.show&size=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=https://fajer.show&sz=%size%"
 }
