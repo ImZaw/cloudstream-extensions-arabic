@@ -234,7 +234,7 @@ class FajerShow : MainAPI() {
                             "Voe.sx mp4",
                             mp4,
                             data,
-                            Qualities.Unknown.value,
+                            quality,
                         )
                     )
                     println("VOE.SX\n$m3u8\n$mp4\n$quality\n")

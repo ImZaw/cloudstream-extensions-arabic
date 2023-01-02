@@ -1,4 +1,4 @@
-version = 2
+version = 1
 
 cloudstream {
     description = ""
@@ -10,5 +10,5 @@ cloudstream {
 
     tvTypes = listOf( "TvSeries" , "Movie" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=https://fajer.show&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=arabseed.ink&sz=%size%"
 }
