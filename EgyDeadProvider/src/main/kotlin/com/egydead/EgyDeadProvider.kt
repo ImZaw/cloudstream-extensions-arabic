@@ -56,7 +56,7 @@ class EgyDead : MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val doc = app.get("$mainUrl/?s=$query").document
         return doc.select("li.movieItem").mapNotNull {
-            if(it.select("a").attr("href").contains("/episode/|/season/".toRegex())) return@mapNotNull null
+            if(it.select("a").attr("href").contains("/episode/")) return@mapNotNull null
             it.toSearchResponse()
         }
     }
@@ -64,7 +64,7 @@ class EgyDead : MainAPI() {
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
         val title = doc.select("div.singleTitle em").text().cleanTitle()
-        val isMovie = !url.contains("/serie/")
+        val isMovie = !url.contains("/serie/|/season/".toRegex())
 
         val posterUrl = doc.select("div.single-thumbnail > img").attr("src")
         val rating = doc.select("a.IMDBRating em").text().getIntFromText()
