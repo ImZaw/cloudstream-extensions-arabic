@@ -1,16 +1,9 @@
 package com.arabseed
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
-import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
-import java.net.URI
-import java.util.*
-import kotlin.collections.ArrayList
 
 class ArabSeed : MainAPI() {
     override var lang = "ar"
@@ -155,10 +148,8 @@ class ArabSeed : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        println(data)
         val doc = app.get(data).document
         val watchUrl = doc.select("a.watchBTn").attr("href")
-        println(watchUrl)
         val watchDoc = app.get(watchUrl, headers = mapOf("Referer" to mainUrl)).document
         val indexOperators = arrayListOf<Int>()
         val list: List<Element> = watchDoc.select("ul > li[data-link], ul > h3").mapIndexed { index, element ->
@@ -177,7 +168,6 @@ class ArabSeed : MainAPI() {
         } else {
             watchLinks = arrayListOf(0 to list)
         }
-        println(watchLinks)
         watchLinks.apmap { (quality, links) ->
             links.apmap {
                 val iframeUrl = it.attr("data-link")
@@ -190,7 +180,7 @@ class ArabSeed : MainAPI() {
                             "ArabSeed",
                             sourceElement.attr("src"),
                             data,
-                            if(quality != 0) quality else it.text().replace("\\D".toRegex(),"").toInt(),
+                            if(quality != 0) quality else it.text().replace(".*- ".toRegex(), "").replace("\\D".toRegex(),"").toInt(),
                             !sourceElement.attr("type").contains("mp4")
                         )
                     )
