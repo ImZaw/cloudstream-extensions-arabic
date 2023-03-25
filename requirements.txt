@@ -42,6 +42,6 @@ tzlocal==2.1
 urllib3==1.26.5
 virtualenv==20.16.3
 virtualenv-clone==0.5.7
-Werkzeug==2.0.3
+Werkzeug==2.2.3
 yarg==0.1.9
 yarl==1.6.3
