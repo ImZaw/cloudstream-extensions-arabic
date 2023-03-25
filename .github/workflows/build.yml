@@ -70,5 +70,5 @@ jobs:
           git commit --amend -m "Build $GITHUB_SHA" || exit 0   # do not error if nothing to commit
           git push --force
         env:
-            data_url: ${{ env.DATA_URL }}
-            proxy_url: ${{ env.PROXY_URL }}
+            data_url: ${{ secrets.DATA_URL }}
+            proxy_url: ${{ secrets.PROXY_URL }}
