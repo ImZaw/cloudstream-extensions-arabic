@@ -43,7 +43,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.9'
+          cache: 'pip'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
@@ -56,9 +57,11 @@ jobs:
           cp **/build/*.cs3 $GITHUB_WORKSPACE/builds
           cp build/plugins.json $GITHUB_WORKSPACE/builds
           cp convert.py $GITHUB_WORKSPACE/builds
+          cp requirements.txt $GITHUB_WORKSPACE/builds
       - name: Push builds
         run: |
           cd $GITHUB_WORKSPACE/builds
+          pip install -r requirements.txt
           python convert.py
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
