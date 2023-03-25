@@ -40,6 +40,11 @@ jobs:
         with:
           java-version: 11
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
@@ -50,11 +55,17 @@ jobs:
           ./gradlew make makePluginsJson
           cp **/build/*.cs3 $GITHUB_WORKSPACE/builds
           cp build/plugins.json $GITHUB_WORKSPACE/builds
+          cp convert.py $GITHUB_WORKSPACE/builds
       - name: Push builds
         run: |
           cd $GITHUB_WORKSPACE/builds
+          python convert.py
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
+          rm ./*
           git add .
           git commit --amend -m "Build $GITHUB_SHA" || exit 0   # do not error if nothing to commit
           git push --force
+        env:
+            data_url: env.DATA_URL
+            proxy_url: env.PROXY_URL

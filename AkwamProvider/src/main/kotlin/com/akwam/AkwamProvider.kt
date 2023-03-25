@@ -77,9 +77,7 @@ class Akwam : MainAPI() {
 
     override suspend fun load(url: String): LoadResponse {
         val doc = app.get(url).document
-        val mesEl = doc.select("#downloads > h2 > span").isNotEmpty()
-        val mesSt = if(mesEl) true else false
-        val isMovie = mesSt//url.contains("/movie/")
+        val isMovie = doc.select("#downloads > h2 > span").isNotEmpty()//url.contains("/movie/")
         val title = doc.select("h1.entry-title").text()
         val posterUrl = doc.select("picture > img").attr("src")
 

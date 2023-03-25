@@ -145,7 +145,7 @@ class CimaNow : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        app.get("$data").document.select("ul#download [aria-label=\"quality\"]").forEach {
+        app.get(data).document.select("ul#download [aria-label=\"quality\"]").forEach {
             val name = if(it.select("span").text().contains("فائق السرعة")) "Fast Servers" else "Servers"
             it.select("a").forEach { media ->
                 callback.invoke(

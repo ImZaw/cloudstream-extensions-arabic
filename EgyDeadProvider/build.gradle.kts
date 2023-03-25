@@ -1,7 +1,6 @@
-version = 2
+version = 4
 
 cloudstream {
-    description = "Some LinkBox links are broken idk why"
     authors = listOf( "ImZaw" )
 
     language = "ar"

@@ -1,7 +1,6 @@
-version = 3
+version = 8
 
 cloudstream {
-    description = ""
     authors = listOf( "ImZaw" )
 
 	language = "ar"
@@ -10,5 +9,5 @@ cloudstream {
 
     tvTypes = listOf( "TvSeries" , "Movie" , "Anime" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=mycima.tv&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=wecima.tube&sz=%size%"
 }

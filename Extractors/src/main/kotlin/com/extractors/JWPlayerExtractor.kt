@@ -1,4 +1,4 @@
-package com.shahid4u
+package com.extractors
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.app
@@ -53,15 +53,19 @@ open class JWPlayer : ExtractorApi() {
     )
 
 }
-class VidHD : JWPlayer() {
+class VidHDJW : JWPlayer() {
     override val name = "VidHD"
     override val mainUrl = "https://vidhd.fun"
-}
-class GoStream : JWPlayer() {
-    override val name = "GoStream"
-    override val mainUrl = "https://gostream.pro"
 }
 class Vidbom : JWPlayer() {
     override val name = "Vidbom"
     override val mainUrl = "https://vidbom.com"
+}
+class Vadbam : JWPlayer() {
+    override val name = "Vadbam"
+    override val mainUrl = "https://vadbam.com/"
+}
+class Vidshar : JWPlayer() {
+    override val name = "Vidshar"
+    override val mainUrl = "https://vidshar.org/"
 }

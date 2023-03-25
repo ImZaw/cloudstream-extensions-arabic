@@ -1,10 +1,11 @@
 package com.movizland
 
+
+import android.annotation.SuppressLint
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
-import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
@@ -18,6 +19,10 @@ class Movizland : MainAPI() {
 
     private fun String.getIntFromText(): Int? {
         return Regex("""\d+""").find(this)?.groupValues?.firstOrNull()?.toIntOrNull()
+    }
+
+    private fun String.getFullSize(): String? {
+        return this.replace("""-\d+x\d+""".toRegex(),"")
     }
     
     private fun String.cleanTitle(): String {
@@ -36,88 +41,101 @@ class Movizland : MainAPI() {
 
     private fun Element.toSearchResponse(): SearchResponse? {
         val url = select(".BlockItem")
-        val title = url.select(".BlockTitle").text().cleanTitle()
+        val title = url.select(".BlockTitle").text()
 	val img = url.select("img:last-of-type")
-	val posterUrl = img?.attr("src")?.ifEmpty { img?.attr("data-src") }
-        val year = select(".InfoEndBlock li").last()?.text()?.getIntFromText()
-        var quality = select(".RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")
-            ?.replace("WEB DL","WEBDL")?.replace("BluRay","BLURAY")
+        val posterUrl = img?.attr("src")?.ifEmpty { img?.attr("data-src") }
+        val year = url.select(".InfoEndBlock li").last()?.text()?.getIntFromText()
+        var quality = url.select(".RestInformation li").last()?.text()?.replace(" |-|1080p|720p".toRegex(), "")?.replace("BluRay","BLURAY")
+	val tvtype = if(title.contains("فيلم")) TvType.Movie else TvType.TvSeries
         return MovieSearchResponse(
-            title.replace("$year",""),
+            title.cleanTitle(),
             url.select("a").attr("href"),
             this@Movizland.name,
-            TvType.TvSeries,
+            tvtype,
             posterUrl,
             year,
             null,
             quality = getQualityFromString(quality),
         )
     }
-    
     override val mainPage = mainPageOf(
-	"$mainUrl/page/" to "الحلقات و الافلام المضافة حديثا",
+	"$mainUrl/page/" to "أضيف حديثا",
         "$mainUrl/category/movies/page/" to "أفلام",
-        "$mainUrl/series/page/" to "مسلسلات",
+        "$mainUrl/series/page/" to "مسلسلات"
     )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
-        val doc = app.get(request.data + page).document
+	val doc = app.get(request.data + page).document   
         val list = doc.select(".BlockItem").mapNotNull { element ->
             element.toSearchResponse()
         }
         return newHomePageResponse(request.name, list)
     }
 
+    @SuppressLint("SuspiciousIndentation")
     override suspend fun search(query: String): List<SearchResponse> {
-        val d = app.get("$mainUrl/?s=$query").document
-        return d.select(".BlockItem").mapNotNull {
-            if(it.select(".BlockTitle").text().contains("الحلقة")) return@mapNotNull null;
-            it.toSearchResponse()
+        val q = query.replace(" ".toRegex(), "%20")
+        val result = arrayListOf<SearchResponse>()
+
+        val rlist = setOf(
+            "$mainUrl/?s=$q",
+        )
+        rlist.forEach{ docs ->
+		val d = app.get(docs).document
+        	d.select(".BlockItem").mapNotNull {
+            	it.toSearchResponse()?.let {
+			it1 -> result.add(it1)
+			}
+        	}
         }
+	return result
     }
-    
-    private fun getSeasonFromString(sName: String): Int {
-        return when (sName.isNotEmpty()) {
-            sName.contains("الموسم الاول|الموسم 1".toRegex()) -> 1
-            sName.contains("الموسم الحادي عشر|الموسم 11".toRegex()) -> 11
-            sName.contains("الموسم الثاني عشر|الموسم 12".toRegex()) -> 12
-            sName.contains("الموسم الثالث عشر|الموسم 13".toRegex()) -> 13
-            sName.contains("الموسم الرابع عشر|الموسم 14".toRegex()) -> 14
-            sName.contains("الموسم الخامس عشر|الموسم 15".toRegex()) -> 15
-            sName.contains("الموسم السادس عشر|الموسم 16".toRegex()) -> 16
-            sName.contains("الموسم السابع عشر|الموسم 17".toRegex()) -> 17
-            sName.contains("الموسم الثامن عشر|الموسم 18".toRegex()) -> 18            
-            sName.contains("الموسم التاسع عشر|الموسم 19".toRegex()) -> 19
-            sName.contains("الموسم الثاني|الموسم 2".toRegex()) -> 2
-            sName.contains("الموسم الثالث|الموسم 3".toRegex()) -> 3
-            sName.contains("الموسم الرابع|الموسم 4".toRegex()) -> 4
-            sName.contains("الموسم الخامس|الموسم 5".toRegex()) -> 5
-            sName.contains("الموسم السادس|الموسم 6".toRegex()) -> 6
-            sName.contains("الموسم السابع|الموسم 7".toRegex()) -> 7
-            sName.contains("الموسم الثامن|الموسم 8".toRegex()) -> 8
-            sName.contains("الموسم التاسع|الموسم 9".toRegex()) -> 9
-            sName.contains("الموسم العاشر|الموسم 10".toRegex()) -> 10
-            sName.contains("الموسم العشرون|الموسم 20".toRegex()) -> 20
-            else -> 1
-            }
-    }
-    
+
+private val seasonPatterns = arrayOf(
+    Pair("الموسم العاشر|الموسم 10", 10),
+    Pair("الموسم الحادي عشر|الموسم 11", 11),
+    Pair("الموسم الثاني عشر|الموسم 12", 12),
+    Pair("الموسم الثالث عشر|الموسم 13", 13),
+    Pair("الموسم الرابع عشر|الموسم 14", 14),
+    Pair("الموسم الخامس عشر|الموسم 15", 15),
+    Pair("الموسم السادس عشر|الموسم 16", 16),
+    Pair("الموسم السابع عشر|الموسم 17", 17),
+    Pair("الموسم الثامن عشر|الموسم 18", 18),
+    Pair("الموسم التاسع عشر|الموسم 19", 19),
+    Pair("الموسم العشرون|الموسم 20", 20),
+    Pair("الموسم الاول|الموسم 1", 1),
+    Pair("الموسم الثاني|الموسم 2", 2),
+    Pair("الموسم الثالث|الموسم 3", 3),
+    Pair("الموسم الرابع|الموسم 4", 4),
+    Pair("الموسم الخامس|الموسم 5", 5),
+    Pair("الموسم السادس|الموسم 6", 6),
+    Pair("الموسم السابع|الموسم 7", 7),
+    Pair("الموسم الثامن|الموسم 8", 8),
+    Pair("الموسم التاسع|الموسم 9", 9),
+)
+
+private fun getSeasonFromString(sName: String): Int {
+    return seasonPatterns.firstOrNull{(pattern, seasonNum) -> sName.contains(pattern.toRegex()) }?.second ?: 1
+}
+        
     override suspend fun load(url: String): LoadResponse {
         var doc = app.get(url).document
         val sdetails = doc.select(".SingleDetails")
-        val posterUrl = sdetails.select(".Poster img").attr("data-src").ifEmpty {
-            sdetails.select(".BlockItem").last()?.select(".Poster img")?.attr("src")
-        }
+        var posterUrl = sdetails.select("img")?.attr("data-src")?.getFullSize()
         val year = sdetails.select("li:has(.fa-clock) a").text()?.getIntFromText()
-        val title = doc.select("h2.postTitle").text().cleanTitle().replace("$year","")
-        val isMovie = doc.select("h2.postTitle").text().contains("عرض|فيلم".toRegex())
+        var title = doc.select("h2.postTitle").text()
+        val isMovie = title.contains("عرض|فيلم".toRegex())
         val synopsis = doc.select("section.story").text()
         val trailer = doc.select("div.InnerTrailer iframe").attr("data-src")
-        val tags = sdetails.select("li:has(.fa-film) a").map{ it.text() }
+        var tags = sdetails.select("li:has(.fa-film) a").map{ it.text() }
+	val recommendations = doc.select(".BlocksUI#LoadFilter .BlockItem").mapNotNull { element ->
+                element.toSearchResponse()
+        }
+
 
         return if (isMovie) {
         newMovieLoadResponse(
-                title,
+                title.cleanTitle().replace("$year",""),
                 url,
                 TvType.Movie,
                 url
@@ -126,12 +144,45 @@ class Movizland : MainAPI() {
                 this.year = year
                 this.tags = tags
                 this.plot = synopsis
-                addTrailer(trailer)
+		this.recommendations = recommendations
+		addTrailer(trailer)
             }
     }   else    {
             val episodes = ArrayList<Episode>()
-            val pageUrl = doc.select("meta[property='og:url']").attr("content")
-            val refererUrl = doc.select("body > header > div > div.Logo > a").attr("href")
+	    val episodesItem = doc.select(".EpisodesList").isNotEmpty()
+	    val fBlock = doc.select(".BlockItem")?.first()
+	    val img = fBlock?.select("img:last-of-type")
+
+	    if(episodesItem){
+		 title = doc.select(".SeriesSingle .ButtonsFilter.WidthAuto span").text()
+		 doc.select(".EpisodesList .EpisodeItem").map{ element ->
+			 if(!element.text().contains("Full")){
+				 episodes.add(
+					 Episode(
+					    element.select("a").attr("href"),
+                                            null,
+                                            null,
+                                            element.select("em").text().getIntFromText(),
+					    null,
+					    null,
+					 )
+				 )
+			 }
+		 }
+		newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
+                	this.posterUrl = posterUrl
+                	this.year = year
+                	this.tags = tags
+                	this.plot = synopsis
+			this.recommendations = recommendations
+			addTrailer(trailer)
+               }
+	    }else{	    
+            posterUrl = img?.attr("src")?.ifEmpty { img?.attr("data-src") }
+	    tags = fBlock?.select(".RestInformation span")!!.mapNotNull { t ->
+                t.text()
+            }
+	    title = doc.select(".PageTitle .H1Title").text().cleanTitle()
             if(doc.select(".BlockItem a").attr("href").contains("/series/")){//seasons
                 doc.select(".BlockItem").map { seas ->
                     seas.select("a").attr("href") }.apmap{ pageIt ->
@@ -140,13 +191,15 @@ class Movizland : MainAPI() {
                     if(pagEl) {
                             Sedoc.select(".pagination > div > ul > li:nth-child(n):not(:last-child) a").apmap {
                                 val epidoc = app.get(it.attr("href")).document
-                                    epidoc.select("div.BlockItem").map{ element ->
+                                    epidoc.select(".BlockItem").map{ element ->
                                     episodes.add(
                                         Episode(
                                             element.select("a").attr("href"),
                                             element.select(".BlockTitle").text(),
                                             getSeasonFromString(element.select(".BlockTitle").text()),
                                             element.select(".EPSNumber").text().getIntFromText(),
+					    element.select("img:last-of-type").attr("src")?.ifEmpty { img?.attr("data-src") },
+					    null,
                                             )
                                         )
                                 }
@@ -159,6 +212,8 @@ class Movizland : MainAPI() {
                                     el.select(".BlockTitle").text(),
                                     getSeasonFromString(el.select(".BlockTitle").text()),
                                     el.select(".EPSNumber").text().getIntFromText(),
+				    el.select("img:last-of-type").attr("src")?.ifEmpty { img?.attr("data-src") },
+				    null,
                                     )
                                )
                         }
@@ -172,25 +227,29 @@ class Movizland : MainAPI() {
                         doc.select(".pagination > div > ul > li:nth-child(n):not(:last-child) a").map{ eppages ->
                             eppages.attr("href") }.apmap{
                             val epidoc = app.get(it).document
-                                epidoc.select("div.BlockItem").map{ element ->
+                                epidoc.select(".BlockItem").map{ element ->
                                 episodes.add(
                                     Episode(
                                         element.select("a").attr("href"),
                                         element.select(".BlockTitle").text(),
                                         getSeasonFromString(element.select(".BlockTitle").text()),
-                                        element.select(".EPSNumber").text().getIntFromText(),
+                                        element.select(".EPSNumber").text().getIntFromText(),    
+					element.select("img:last-of-type").attr("src")?.ifEmpty { img?.attr("data-src") },
+				        null,
                                         )
                                     )
                             }
                         }
                     }else{   
-                    doc.select("div.BlockItem").map{ el ->
+                    doc.select(".BlockItem").map{ el ->
                     episodes.add(
                         Episode(
                                 el.select("a").attr("href"),
                                 el.select(".BlockTitle").text(),
                                 getSeasonFromString(el.select(".BlockTitle").text()),
                                 el.select(".EPSNumber").text().getIntFromText(),
+				el.select("img:last-of-type").attr("src")?.ifEmpty { img?.attr("data-src") },
+				null,
                                 )
                            )
                     }
@@ -198,25 +257,22 @@ class Movizland : MainAPI() {
             }
                                 
             newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
-              /*this.posterUrl = posterUrl
-                this.year = year
-                this.tags = tags
-                this.plot = synopsis
-                addTrailer(trailer)*/
+		    this.posterUrl = posterUrl?.getFullSize()
+		    this.tags = tags
                }
             }
         }
-          
-	override suspend fun loadLinks(
-        	data: String,
-       		 isCasting: Boolean,
-        	subtitleCallback: (SubtitleFile) -> Unit,
-        	callback: (ExtractorLink) -> Unit
-    	): Boolean {
-        	val doc = app.get(data).document
-		doc.select("code[id*='Embed'] iframe").apmap {
-                	var sourceUrl = it.attr("data-srcout")
-                        loadExtractor(sourceUrl, data, subtitleCallback, callback)
+    }
+override suspend fun loadLinks(
+        data: String,
+        isCasting: Boolean,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ): Boolean {
+        val doc = app.get(data).document
+	doc.select("code[id*='Embed'] iframe,.DownloadsList a").apmap {
+                            var sourceUrl = it.attr("data-srcout").ifEmpty { it.attr("href") }
+                            loadExtractor(sourceUrl, data, subtitleCallback, callback)
             }
 	return true
     }

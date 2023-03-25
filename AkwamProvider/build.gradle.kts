@@ -1,7 +1,6 @@
-version = 1
+version = 2
 
 cloudstream {
-    description = ""
     authors = listOf( "Blatzar" )
 	
 	language = "ar"

@@ -5,12 +5,13 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 class MyCima : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://myciima.motorcycles"
+    override var mainUrl = "https://wecima.tube"
     override var name = "MyCima"
     override val usesWebView = false
     override val hasMainPage = true
@@ -54,7 +55,7 @@ class MyCima : MainAPI() {
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val doc = app.get(request.data + page).document
-        val list = doc.select("div.Grid--MycimaPosts div.GridItem").mapNotNull { element ->
+        val list = doc.select("div.Grid--WecimaPosts div.GridItem").mapNotNull { element ->
             element.toSearchResponse()
         }
         return newHomePageResponse(request.name, list)
@@ -69,7 +70,7 @@ class MyCima : MainAPI() {
             "$mainUrl/search/$q/list/anime/"
         ).apmap { url ->
             val d = app.get(url).document
-            d.select("div.Grid--MycimaPosts div.GridItem").mapNotNull {
+            d.select("div.Grid--WecimaPosts div.GridItem").mapNotNull {
                 if (it.text().contains("اعلان")) return@mapNotNull null
                 it.toSearchResponse()?.let { it1 -> result.add(it1) }
             }
@@ -85,9 +86,9 @@ class MyCima : MainAPI() {
         val doc = app.get(url).document
         val isMovie = doc.select("ol li:nth-child(3)").text().contains("افلام")
         val posterUrl =
-            doc.select("mycima.separated--top")?.attr("data-lazy-style")?.getImageURL()
+            doc.select("wecima.separated--top")?.attr("data-lazy-style")?.getImageURL()
                 ?.ifEmpty { doc.select("meta[itemprop=\"thumbnailUrl\"]")?.attr("content") }
-                ?.ifEmpty { doc.select("mycima.separated--top")?.attr("style")?.getImageURL() }
+                ?.ifEmpty { doc.select("wecima.separated--top")?.attr("style")?.getImageURL() }
         val year =
             doc.select("div.Title--Content--Single-begin h1 a.unline")?.text()?.getIntFromText()
         val title = doc.select("div.Title--Content--Single-begin h1").text()
@@ -112,7 +113,7 @@ class MyCima : MainAPI() {
             Actor(name, image)
         }
         val recommendations =
-            doc.select("div.Grid--MycimaPosts div.GridItem")?.mapNotNull { element ->
+            doc.select("div.Grid--WecimaPosts div.GridItem")?.mapNotNull { element ->
                 element.toSearchResponse()
             }
 
@@ -308,8 +309,12 @@ class MyCima : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        app.get(data).document
-            .select("ul.List--Download--Mycima--Single:nth-child(2) li").map {
+        val doc = app.get(data).document
+        doc.select(".WatchServersList > ul > li").apmap {
+            val url = it.select("btn").attr("data-url")
+            loadExtractor(url, data, subtitleCallback, callback)
+        }
+        doc.select("ul.List--Download--Wecima--Single:nth-child(2) li").apmap {
                 it.select("a").map { linkElement ->
                     callback.invoke(
                         ExtractorLink(

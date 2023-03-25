@@ -195,49 +195,7 @@ class FajerShow : MainAPI() {
                             )
                         )
                     }
-                    println("FajerLive\n$response\n") // parse using FajerLive data class
-                }
-                else if (it.contains("vidmoly.to")) {
-                    val doc = app.get(it).document
-                    val m3u8 = doc.select("body > script").map { it.data() }.first { it.contains("sources") }.substringAfter("sources: [{file:\"").substringBefore("\"}],")
-                    callback.invoke(
-                        ExtractorLink(
-                            this.name,
-                            "Vidmoly",
-                            m3u8,
-                            data,
-                            Qualities.Unknown.value,
-                            m3u8.contains(".m3u8")
-                        )
-                    )
-                    println("VIDMOLY.TO\n$m3u8\n")
-                }
-                else if (it.contains("voe.sx")) {
-                    val doc = app.get(it).document
-                    val script = doc.select("script").map { it.data() }.first { it.contains("sources") }
-                    val m3u8 = script.substringAfter("'hls': '").substringBefore("'")
-                    val mp4 = script.substringAfter("'mp4': '").substringBefore("'")
-                    val quality = script.substringAfter("'video_height': ").substringBefore(",").toInt()
-                    callback.invoke(
-                        ExtractorLink(
-                            this.name,
-                            "Voe.sx m3u8",
-                            m3u8,
-                            data,
-                            quality,
-                            true
-                        )
-                    )
-                    callback.invoke(
-                        ExtractorLink(
-                            this.name,
-                            "Voe.sx mp4",
-                            mp4,
-                            data,
-                            quality,
-                        )
-                    )
-                    println("VOE.SX\n$m3u8\n$mp4\n$quality\n")
+                    println("FajerLive\n$response\n")
                 }
                 else loadExtractor(it, data, subtitleCallback, callback)
             }

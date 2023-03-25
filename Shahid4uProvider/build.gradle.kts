@@ -1,7 +1,6 @@
-version = 6
+version = 7
 
 cloudstream {
-    description = ""
     authors = listOf( "ImZaw" )
 
 	language = "ar"

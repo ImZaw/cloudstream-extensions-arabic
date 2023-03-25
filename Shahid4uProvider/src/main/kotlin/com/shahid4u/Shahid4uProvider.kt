@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element
 
 class Shahid4u : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://shahed4u.vip"
+    override var mainUrl = "https://shaheed4u.me/"
     override var name = "Shahid4u"
     override val usesWebView = false
     override val hasMainPage = true

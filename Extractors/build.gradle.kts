@@ -1,6 +1,7 @@
-version = 7
+version = 1
 
 cloudstream {
+    description = "This is required to be downloaded."
     authors = listOf( "ImZaw" )
 
 	language = "ar"
@@ -8,6 +9,4 @@ cloudstream {
     status = 1
 
     tvTypes = listOf( "TvSeries" , "Movie" , "Anime" , "AsianDrama" )
-
-    iconUrl = "https://www.google.com/s2/favicons?domain=faselhd.io&sz=%size%"
 }

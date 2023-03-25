@@ -44,9 +44,13 @@ class FaselHD : MainAPI() {
         )
     }
     override val mainPage = mainPageOf(
-            "$mainUrl/all-movies/page/" to "Movies",
-            "$mainUrl/series/page/" to "Series",
-            "$mainUrl/movies_top_imdb/page/" to "Top Movies IMDB",
+            "$mainUrl/all-movies/page/" to "جميع الافلام",
+            "$mainUrl/movies_top_views/page/" to "الافلام الاعلي مشاهدة",
+            "$mainUrl/dubbed-movies/page/" to "الأفلام المدبلجة",
+            "$mainUrl/movies_top_imdb/page/" to "الافلام الاعلي تقييما IMDB",
+            "$mainUrl/series/page/" to "مسلسلات",
+            "$mainUrl/recent_series/page/" to "المضاف حديثا",
+            "$mainUrl/anime/page/" to "الأنمي",
         )
 
     override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
@@ -131,9 +135,10 @@ class FaselHD : MainAPI() {
             }
             doc.select("div[id=\"seasonList\"] div[class=\"col-xl-2 col-lg-3 col-md-6\"] div.seasonDiv")
                 .not(".active").apmap { it ->
-                    var s = app.get("$mainUrl/?p="+it.attr("data-href")).document
+					val id = it.attr("onclick").replace(".*\\/\\?p=|'".toRegex(), "")
+                    var s = app.get("$mainUrl/?p="+id).document
                     if(s.select("title").text() == "Just a moment...") {
-                        s = app.get("$alternativeUrl/?p="+it.attr("data-href"), interceptor = cfKiller).document
+                        s = app.get("$alternativeUrl/?p="+id, interceptor = cfKiller).document
                     }
                     s.select("div.epAll a").map {
                         episodes.add(
