@@ -61,7 +61,7 @@ jobs:
       - name: Push builds
         run: |
           cd $GITHUB_WORKSPACE/builds
-          pip install -r requirements.txt
+          pip install requests
           python convert.py
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
