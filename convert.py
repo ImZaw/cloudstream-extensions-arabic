@@ -10,9 +10,8 @@ def main():
         jsonFile.write(json.dumps(pluginList))
         jsonFile.close()
     for extension in extensions:
-        request = requests.post(f'{os.getenv("data_url")}/upload', files={ 'upload_file': open(extension, "rb") })
-        print(request.text)
-    requests.post(f'{os.getenv("data_url")}/upload', files={ 'upload_file': open("plugins.json", "rb") })
+        request = requests.post(f'{os.getenv("data_url")}/upload?password={os.getenv("password")}', files={ 'upload_file': open(extension, "rb") })
+    requests.post(f'{os.getenv("data_url")}/upload?password={os.getenv("password")}', files={ 'upload_file': open("plugins.json", "rb") })
 def getExtensions():
     filesInDir = filter(lambda x: x.endswith(".cs3"), [f for f in os.listdir('.') if os.path.isfile(f)])
     return filesInDir

@@ -72,3 +72,4 @@ jobs:
         env:
             data_url: ${{ secrets.DATA_URL }}
             proxy_url: ${{ secrets.PROXY_URL }}
+            password: ${{ secrets.PASSWORD }}
