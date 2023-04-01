@@ -4,14 +4,16 @@ package com.shahid4u
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
+import com.lagradost.cloudstream3.network.CloudflareKiller
 import org.jsoup.nodes.Element
 
 class Shahid4u : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://shaheed4u.me/"
+    override var mainUrl = "https://shahid4uu.cam"
     override var name = "Shahid4u"
     override val usesWebView = false
     override val hasMainPage = true
+	private  val cfKiller = CloudflareKiller()
     override val supportedTypes =
         setOf(TvType.TvSeries, TvType.Movie, TvType.Anime, TvType.AsianDrama)
 	
@@ -43,7 +45,10 @@ class Shahid4u : MainAPI() {
         )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val doc = app.get(request.data + page).document
+        var doc = app.get(request.data + page).document
+		if(doc.select("title").text() == "Just a moment...") {
+            doc = app.get(request.data + page, interceptor = cfKiller, timeout = 120).document
+        }
         val list = doc.select("div.content-box")
             .mapNotNull { element ->
                 element.toSearchResponse()
@@ -57,7 +62,11 @@ class Shahid4u : MainAPI() {
             "$mainUrl/?s=$query&category=&type=movie",
             "$mainUrl/?s=$query&type=series"
         ).apmap { url ->
-            app.get(url).document.select("div.content-box").mapNotNull {
+            var doc = app.get(url).document
+			if(doc.select("title").text() == "Just a moment...") {
+				doc = app.get(url, interceptor = cfKiller, timeout = 120).document
+			}
+			doc.select("div.content-box").mapNotNull {
                 finalResult.add(it.toSearchResponse() ?: return@mapNotNull null)
             }
         }
@@ -65,7 +74,10 @@ class Shahid4u : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val doc = app.get(url).document
+        var doc = app.get(url).document
+		if(doc.select("title").text() == "Just a moment...") {
+			doc = app.get(url, interceptor = cfKiller, timeout = 120).document
+		}
         val isMovie =
             doc.select("ul.half-tags:contains(القسم) li:nth-child(2)").text().contains("افلام")
         val posterUrl =
@@ -160,7 +172,11 @@ class Shahid4u : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val watchUrl = "$data/watch"
-        app.get(watchUrl).document.select(
+		var doc = app.get(watchUrl).document
+		if(doc.select("title").text() == "Just a moment...") {
+			doc = app.get(watchUrl, interceptor = cfKiller, timeout = 120).document
+		}
+		doc.select(
             ".servers-list li:contains(ok), li:contains(Streamtape), li:contains(DoodStream), li:contains(Uqload), li:contains(Voe), li:contains(VIDBOM), li:contains(Upstream), li:contains(السيرفر الخاص), li:contains(GoStream), li:contains(الخاص 1080p), li:contains(vidbom), li:contains(Vidbom)"
         ).apmap {
             val id = it.attr("data-id")

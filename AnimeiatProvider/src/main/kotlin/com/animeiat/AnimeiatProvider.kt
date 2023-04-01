@@ -123,7 +123,7 @@ class Animeiat : MainAPI() {
             parseJson<Episodes>(loadSession.get("$url/episodes?page=$pageNumber").text).data.map {
                 episodes.add(
                     Episode(
-                        "$pageUrl/watch/"+json.data?.slug,
+                        "$pageUrl/watch/"+it.slug,
                         it.title,
                         null,
                         it.number,
@@ -133,7 +133,7 @@ class Animeiat : MainAPI() {
                 )
             }
         }
-        return newAnimeLoadResponse(json.data?.animeName.toString(), "$pageUrl/watch/"+json.data?.slug, if(json.data?.type == "movie") TvType.AnimeMovie else if(json.data?.type == "tv") TvType.Anime else TvType.OVA) {
+        return newAnimeLoadResponse(json.data?.animeName.toString(), "$pageUrl/anime/"+json.data?.slug, if(json.data?.type == "movie") TvType.AnimeMovie else if(json.data?.type == "tv") TvType.Anime else TvType.OVA) {
             japName = json.data?.otherNames?.replace("\\n.*".toRegex(), "")
             engName = json.data?.animeName
             posterUrl = "https://api.animeiat.co/storage/" + json.data?.posterPath
@@ -151,7 +151,7 @@ class Animeiat : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        // val url = if(data.contains("-episode")) data else "$data-episode-1"
+        val url = if(data.contains("-episode")) data else "$data-episode-1"
         val doc = app.get(data).document
         val script = doc.select("body > script").first()?.html()
         val id = script?.replace(".*4\",slug:\"|\",duration:.*".toRegex(),"")
