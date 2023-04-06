@@ -152,7 +152,8 @@ class Animeiat : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
         val url = if(data.contains("-episode")) data else "$data-episode-1"
-        val doc = app.get(data).document
+        println(url)
+        val doc = app.get(url).document
         val script = doc.select("body > script").first()?.html()
         val id = script?.replace(".*4\",slug:\"|\",duration:.*".toRegex(),"")
         val player = app.get("$pageUrl/player/$id").document

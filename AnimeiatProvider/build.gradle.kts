@@ -1,9 +1,9 @@
-version = 4
+version = 5
 
 cloudstream {
     authors = listOf( "ImZaw" )
-
-	language = "ar"
+	
+    language = "ar"
 	
     status = 1
 
