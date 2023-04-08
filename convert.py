@@ -2,7 +2,6 @@ import os
 import base64
 import requests
 import json
-
 def main():
     pluginList = newPluginList()
     extensions = getExtensions()
