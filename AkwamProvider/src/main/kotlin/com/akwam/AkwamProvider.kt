@@ -6,8 +6,11 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
-
-class Akwam : MainAPI() {
+class AkwamBC : Akwam() {
+    override var name = "Akwam (Blocked Countries)"
+    override var mainUrl = "https://eg1.اكوام.fun/"
+}
+open class Akwam : MainAPI() {
     override var lang = "ar"
     override var mainUrl = "https://akwam.to"
     override var name = "Akwam"

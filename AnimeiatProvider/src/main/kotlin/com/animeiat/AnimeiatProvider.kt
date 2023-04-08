@@ -133,7 +133,7 @@ class Animeiat : MainAPI() {
                 )
             }
         }
-        return newAnimeLoadResponse(json.data?.animeName.toString(), "$pageUrl/anime/"+json.data?.slug, if(json.data?.type == "movie") TvType.AnimeMovie else if(json.data?.type == "tv") TvType.Anime else TvType.OVA) {
+        return newAnimeLoadResponse(json.data?.animeName.toString(), "$mainUrl/anime/"+json.data?.slug, if(json.data?.type == "movie") TvType.AnimeMovie else if(json.data?.type == "tv") TvType.Anime else TvType.OVA) {
             japName = json.data?.otherNames?.replace("\\n.*".toRegex(), "")
             engName = json.data?.animeName
             posterUrl = "https://api.animeiat.co/storage/" + json.data?.posterPath
