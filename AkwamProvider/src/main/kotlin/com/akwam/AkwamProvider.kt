@@ -8,7 +8,7 @@ import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
 class AkwamBC : Akwam() {
     override var name = "Akwam (Blocked Countries)"
-    override var mainUrl = "https://eg1.اكوام.fun/"
+    override var mainUrl = "https://eg1.xn--mgba7fjn.fun"
 }
 open class Akwam : MainAPI() {
     override var lang = "ar"
