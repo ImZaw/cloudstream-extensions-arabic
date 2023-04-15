@@ -9,5 +9,5 @@ cloudstream {
 
     tvTypes = listOf( "Anime" , "AnimeMovie" , "OVA" )
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=animeblkom.net&sz=%size%"
+    iconUrl = "https://www.google.com/s2/favicons?domain=ncv.life&sz=%size%"
 }
