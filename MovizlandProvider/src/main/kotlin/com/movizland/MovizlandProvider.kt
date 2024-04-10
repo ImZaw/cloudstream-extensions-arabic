@@ -11,7 +11,7 @@ import org.jsoup.nodes.Element
 
 class Movizland : MainAPI() {
     override var lang = "ar"
-    override var mainUrl = "https://movizland.online"
+    override var mainUrl = "https://movizlands.com"
     override var name = "Movizland"
     override val usesWebView = false
     override val hasMainPage = true
