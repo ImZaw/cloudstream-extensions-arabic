@@ -7,6 +7,5 @@ import android.content.Context
 class AkwamPlugin: Plugin() {
     override fun load(context: Context) {
         registerMainAPI(Akwam())
-        registerMainAPI(AkwamBC())
     }
 }
