@@ -7,7 +7,7 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 import org.jsoup.nodes.Element
 
-open class Akwam : MainAPI() {
+class Akwam : MainAPI() {
     override var lang = "ar"
     override var mainUrl = "https://ak.sv"
     override var name = "Akwam"
